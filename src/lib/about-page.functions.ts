@@ -17,8 +17,8 @@ const aboutPageContentSchema = z.object({
 export const getAboutPageContentFn = createServerFn({ method: "GET" }).handler(async () => {
   // Direct PostgREST fetch — avoids @supabase/supabase-js so RealtimeClient
   // never initializes on runtimes without a native WebSocket (e.g. Node 20).
-  const url = process.env.SUPABASE_URL!;
-  const key = process.env.SUPABASE_PUBLISHABLE_KEY!;
+  const url = process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.VITE_SUPABASE_URL || "https://svdbmoozphbivdvdmlfu.supabase.co";
+  const key = process.env.SUPABASE_PUBLISHABLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY || process.env.VITE_SUPABASE_PUBLISHABLE_KEY || "sb_publishable_ThrfnIRx5NNAaV-xLkVftg_McfWpTMh";
   const res = await fetch(
     `${url}/rest/v1/site_settings?key=eq.about_page&select=value`,
     {
