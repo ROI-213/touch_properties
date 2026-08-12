@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import type { Property } from "@/data/properties";
+import { properties as staticProperties, type Property } from "@/data/properties";
 import { FALLBACK_PROPERTY_IMAGE, resolveLocalImage } from "@/data/siteImages";
 
 
@@ -70,42 +70,37 @@ function formatINR(n: number): string {
   return n.toLocaleString("en-IN");
 }
 
-export function useDbProperties() {
-  // Note: Realtime subscriptions removed from public pages to avoid opening
-  // a WebSocket on every home/listing visit (was delaying first paint and
-  // occasionally failing on cold connections). Admin mutations invalidate
-  // the ["public-properties"] key directly.
+import { getPublicPropertiesFn } from "@/lib/properties.functions";
+
+export function useDbProperties(options?: { enabled?: boolean }) {
+  const enabled = options?.enabled ?? true;
 
   const query = useQuery({
     queryKey: ["public-properties"],
     queryFn: async (): Promise<Property[]> => {
-      const { data, error } = await supabase
-        .from("properties")
-        .select("*, builder:builders!properties_builder_id_fkey(name), location:locations!properties_location_id_fkey(zone, locality), property_images(url, image_type)")
-        .eq("is_active", true)
-        .order("display_order")
-        .order("created_at", { ascending: false });
-      if (error) {
-        console.warn("[useDbProperties] failed:", error.message);
-        throw error;
+      try {
+        return await getPublicPropertiesFn();
+      } catch (err) {
+        console.warn("[useDbProperties] query exception:", err);
+        return staticProperties;
       }
-      return (Array.isArray(data) ? data : []).map((row) => {
-        try {
-          return dbRowToProperty(row);
-        } catch (error) {
-          console.warn("[useDbProperties] skipped invalid row:", error);
-          return null;
-        }
-      }).filter((p): p is Property => Boolean(p));
     },
-    staleTime: 30_000,
+    initialData: staticProperties,
+    initialDataUpdatedAt: 0,
+    enabled,
+    staleTime: 60_000,
+    gcTime: 300_000,
   });
 
+  const propertyData = Array.isArray(query.data) && query.data.length > 0 ? query.data : staticProperties;
+
   return {
-    data: query.data || [],
-    isLoading: query.isLoading,
+    data: propertyData,
+    isLoading: false,
+    isFetching: query.isFetching,
     isError: query.isError,
     error: query.error,
     refetch: query.refetch,
   };
 }
+

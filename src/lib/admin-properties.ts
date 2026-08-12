@@ -229,7 +229,7 @@ export async function listPropertyAmenityIds(propertyId: string) {
     .select("amenity_id")
     .eq("property_id", propertyId);
   if (error) throw error;
-  return (data ?? []).map((r) => r.amenity_id);
+  return (data ?? []).map((r: any) => r.amenity_id);
 }
 
 export async function setPropertyAmenities(propertyId: string, amenityIds: string[]) {

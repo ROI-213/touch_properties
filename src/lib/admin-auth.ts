@@ -17,7 +17,7 @@ export async function withAuthTimeout<T>(promise: PromiseLike<T>, message: strin
 }
 
 export async function isAdminUser(userId: string): Promise<boolean> {
-  const { data, error } = await withAuthTimeout(
+  const { data, error } = await withAuthTimeout<{ data: any; error: any }>(
     supabase.rpc("has_role", { _user_id: userId, _role: "admin" }),
     "Admin permission check timed out. Please try again.",
   );

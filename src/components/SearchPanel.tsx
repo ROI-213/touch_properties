@@ -20,9 +20,9 @@ export function SearchPanel() {
   const { data: filters = SEARCH_FILTERS_DEFAULTS } = useQuery({
     queryKey: ["search-filters"],
     queryFn: getSearchFilters,
-    staleTime: 0,
-    refetchOnMount: "always",
-    refetchOnWindowFocus: true,
+    staleTime: 60_000,
+    refetchOnMount: false,
+    refetchOnWindowFocus: false,
   });
 
   // Realtime: any change to site_settings (admin save) refetches instantly.
@@ -208,7 +208,7 @@ export function SearchPanel() {
       initial={false}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.7, delay: 0.6 }}
-      className="relative z-20 mx-auto mt-0 w-full max-w-[880px] rounded-2xl border-t-4 border-gold p-3.5 sm:p-5 md:p-8 shadow-elevated md:-mt-[60px]"
+      className="relative z-20 mx-auto mt-0 w-full max-w-[1140px] rounded-2xl border-t-4 border-gold p-3.5 sm:p-5 md:p-8 shadow-elevated md:-mt-[60px]"
       style={{
         background: "rgba(248,245,240,0.97)",
         backdropFilter: "blur(8px)",

@@ -117,20 +117,37 @@ export type SuccessStoryRow = {
 };
 
 // ---------- brand ----------
+// The remote Postgres server is slow (~200ms+ per query, ~1s cold connect), so
+// cache the tiny brand blob server-side. Admin saves clear the cache so edits
+// show up immediately.
+const BRAND_CACHE_TTL_MS = 15_000;
+let brandCache: { value: BrandSettings; at: number } | undefined;
+function isServer() {
+  return typeof window === "undefined";
+}
+
 export async function getBrandSettings(): Promise<BrandSettings> {
+  if (isServer() && brandCache && Date.now() - brandCache.at < BRAND_CACHE_TTL_MS) {
+    return brandCache.value;
+  }
   const { data, error } = await supabase
     .from("site_settings")
     .select("value")
     .eq("key", "brand")
     .maybeSingle();
+  let result: BrandSettings;
   if (error) {
     console.warn("[site-cms] brand read failed:", error.message);
-    return BRAND_DEFAULTS;
+    result = BRAND_DEFAULTS;
+  } else {
+    result = { ...BRAND_DEFAULTS, ...(data?.value as Partial<BrandSettings> | null ?? {}) } as BrandSettings;
   }
-  return { ...BRAND_DEFAULTS, ...(data?.value as Partial<BrandSettings> | null ?? {}) } as BrandSettings;
+  if (isServer()) brandCache = { value: result, at: Date.now() };
+  return result;
 }
 
 export async function updateBrandSettings(value: BrandSettings) {
+  brandCache = undefined;
   const { error } = await supabase
     .from("site_settings")
     .upsert({ key: "brand", value: JSON.parse(JSON.stringify(value)) }, { onConflict: "key" });

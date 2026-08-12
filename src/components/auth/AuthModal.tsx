@@ -7,6 +7,8 @@ import { supabase } from "@/integrations/supabase/client";
 
 import { useAuthModal } from "@/contexts/AuthModalContext";
 import { getLoginErrorMessage, isAdminUser, withAuthTimeout } from "@/lib/admin-auth";
+import { loginUserFn, signupUserFn } from "@/lib/auth.functions";
+import { useAuth } from "@/contexts/AuthContext";
 
 const GoogleIcon = (props: React.SVGProps<SVGSVGElement>) => (
   <svg width={18} height={18} viewBox="0 0 48 48" {...props}>
@@ -229,8 +231,9 @@ function LoginForm() {
   const [loading, setLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
   const [unconfirmedEmail, setUnconfirmedEmail] = useState("");
+  const { setSessionData } = useAuth();
 
-  const isAdminLogin = loginOnly && pathname.startsWith("/admin");
+  const isAdminLogin = loginOnly && (pathname.startsWith("/admin") || pathname.includes("staff"));
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -248,15 +251,13 @@ function LoginForm() {
     setLoading(true);
     setErrorMessage("");
     try {
-      const { data, error } = await withAuthTimeout(
-        supabase.auth.signInWithPassword({ email: trimmedEmail, password: trimmedPassword }),
-        "Login request timed out. Please check your connection and try again.",
-      );
+      const result = await loginUserFn({ data: { email: trimmedEmail, password: trimmedPassword } });
 
-      if (error) throw new Error(error.message);
-      if (!data.session?.user) throw new Error("Sign-in succeeded, but no session was created.");
+      if ("error" in result) throw new Error(result.error);
+      if (!result.user || !result.token) throw new Error("Sign-in failed.");
 
-      const uid = data.session.user.id;
+      const uid = result.user.id;
+      setSessionData(result.token, result.user as any);
 
       // Check admin/staff roles — wrap in try/catch so RLS errors don't log the user out
       let isAdminAcct = false;
@@ -286,7 +287,7 @@ function LoginForm() {
       // Customer login: block admin/staff accounts from using the website modal
       if (isAdminAcct || isStaffAcct) {
         await supabase.auth.signOut();
-        throw new Error("This is a staff/admin account. Please sign in at /admin/login.");
+        throw new Error("This is a staff/admin account. Please sign in at /staff-login or /admin/login.");
       }
 
       // ✅ Successful customer login — close modal and show logged-in state
@@ -414,6 +415,7 @@ function RegisterForm() {
     confirm: "",
   });
   const [loading, setLoading] = useState(false);
+  const { setSessionData } = useAuth();
   const update = (k: keyof typeof form, v: string) => setForm((f) => ({ ...f, [k]: v }));
 
   const submit = async (e: React.FormEvent) => {
@@ -421,29 +423,21 @@ function RegisterForm() {
     if (form.password !== form.confirm) return toast.error("Passwords don't match");
     if (form.password.length < 6) return toast.error("Password must be at least 6 characters");
     setLoading(true);
-    const { data, error } = await supabase.auth.signUp({
-      email: form.email,
-      password: form.password,
-      options: {
-        emailRedirectTo: window.location.origin,
-        data: {
-          full_name: form.full_name,
-          phone: form.phone,
-          city: form.city,
-        },
-      },
+    const result = await signupUserFn({
+      data: {
+        email: form.email,
+        password: form.password,
+        full_name: form.full_name
+      }
     });
     setLoading(false);
-    if (error) {
-      toast.error(error.message);
+    if ("error" in result) {
+      toast.error(result.error);
       return;
     }
-    
-    if (data?.user && !data?.session) {
-      toast.success("Account created! Please check your email inbox to confirm your account.");
-    } else {
-      toast.success("Account created successfully!");
-    }
+
+    setSessionData(result.token, result.user as any);
+    toast.success("Account created successfully!");
     closeModal();
   };
 

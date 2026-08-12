@@ -226,6 +226,7 @@ function NotificationsPage() {
                           enquire.open({
                             id: n.property_id,
                             title: n.project_name,
+                            location: (n as any).location || "Bangalore",
                             price: n.price_text || "",
                           })
                         }

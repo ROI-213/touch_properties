@@ -5,7 +5,6 @@ import {
   useState,
   type ReactNode,
 } from "react";
-import type { Session, User } from "@supabase/supabase-js";
 import { useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -18,12 +17,18 @@ export interface Profile {
   avatar_url: string | null;
 }
 
+export interface User {
+  id: string;
+  email: string;
+}
+
 interface AuthContextValue {
   user: User | null;
-  session: Session | null;
+  session: { access_token: string } | null;
   profile: Profile | null;
   loading: boolean;
   isReady: boolean;
+  setSessionData: (token: string, userData: User) => void;
   signOut: () => Promise<void>;
   refreshProfile: () => Promise<void>;
 }
@@ -32,7 +37,7 @@ const AuthContext = createContext<AuthContextValue | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
-  const [session, setSession] = useState<Session | null>(null);
+  const [session, setSession] = useState<{ access_token: string } | null>(null);
   const [profile, setProfile] = useState<Profile | null>(null);
   const [loading, setLoading] = useState(true);
   const qc = useQueryClient();
@@ -60,52 +65,42 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setSession(null);
     setUser(null);
     setProfile(null);
+    localStorage.removeItem("ts-auth-token");
+    document.cookie = "ts-auth-token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
   };
 
   useEffect(() => {
-    let cancelled = false;
-    let subscription: { unsubscribe: () => void } | undefined;
-
-    try {
-      // onAuthStateChange fires INITIAL_SESSION on mount with the restored
-      // session from localStorage — no need to call getSession() separately.
-      // Calling both causes a race where getSession() can resolve with null
-      // before the localStorage token is read, triggering a spurious sign-out.
-      const { data: sub } = supabase.auth.onAuthStateChange((event, sess) => {
-        if (cancelled) return;
-        setSession(sess);
-        setUser(sess?.user ?? null);
+    const token = localStorage.getItem("ts-auth-token");
+    const userStr = localStorage.getItem("ts-auth-user");
+    if (token && userStr) {
+      try {
+        const parsedUser = JSON.parse(userStr);
+        setSession({ access_token: token });
+        setUser(parsedUser);
+        fetchProfile(parsedUser.id).finally(() => setLoading(false));
+      } catch (e) {
+        resetAuthState();
         setLoading(false);
-        if (sess?.user) {
-          setTimeout(() => {
-            if (!cancelled) void fetchProfile(sess.user.id);
-          }, 0);
-        } else {
-          setProfile(null);
-        }
-        if (event === "SIGNED_OUT") {
-          qc.clear();
-        }
-      });
-      subscription = sub.subscription;
-    } catch (error) {
-      console.warn("[Auth] auth listener failed:", error);
-      resetAuthState();
+      }
+    } else {
       setLoading(false);
     }
+  }, []);
 
-    return () => {
-      cancelled = true;
-      subscription?.unsubscribe();
-    };
-  }, [qc]);
-
+  const setSessionData = (token: string, userData: User) => {
+    localStorage.setItem("ts-auth-token", token);
+    localStorage.setItem("ts-auth-user", JSON.stringify(userData));
+    // also set cookie for SSR
+    document.cookie = `ts-auth-token=${token}; path=/`;
+    setSession({ access_token: token });
+    setUser(userData);
+    fetchProfile(userData.id);
+  };
 
   const signOut = async () => {
     try {
       await qc.cancelQueries();
       qc.clear();
-      await supabase.auth.signOut();
     } catch (error) {
       console.warn("[Auth] sign out failed:", error);
     } finally {
@@ -118,7 +113,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   return (
-    <AuthContext.Provider value={{ user, session, profile, loading, isReady: !loading, signOut, refreshProfile }}>
+    <AuthContext.Provider value={{ user, session, profile, loading, isReady: !loading, setSessionData, signOut, refreshProfile }}>
       {children}
     </AuthContext.Provider>
   );

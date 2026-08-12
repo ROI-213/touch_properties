@@ -15,6 +15,7 @@ export type StaffUser = {
   joining_date: string | null;
   deactivated_at: string | null;
   status: "active" | "inactive";
+  plain_password?: string | null;
   created_at: string;
   updated_at: string;
 };
@@ -89,6 +90,7 @@ export async function updateStaffProfile(id: string, patch: {
   branch?: string | null;
   territory?: string | null;
   joining_date?: string | null;
+  plain_password?: string | null;
 }) {
   const { error } = await (supabase.from("staff_users") as any).update(patch).eq("id", id);
   if (error) throw error;

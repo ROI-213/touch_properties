@@ -33,3 +33,11 @@ dist-ssr
 
 .vercel
 .env
+.env*
+
+# Temporary scratch scripts
+.playwright-mcp/
+check-*.cjs
+check.cjs
+enquiry-requests.txt
+

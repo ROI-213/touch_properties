@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as WishlistRouteImport } from './routes/wishlist'
 import { Route as TestimonialsRouteImport } from './routes/testimonials'
+import { Route as StaffLoginRouteImport } from './routes/staff-login'
 import { Route as SellPropertyRouteImport } from './routes/sell-property'
 import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as NotificationsRouteImport } from './routes/notifications'
@@ -75,6 +76,11 @@ const WishlistRoute = WishlistRouteImport.update({
 const TestimonialsRoute = TestimonialsRouteImport.update({
   id: '/testimonials',
   path: '/testimonials',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const StaffLoginRoute = StaffLoginRouteImport.update({
+  id: '/staff-login',
+  path: '/staff-login',
   getParentRoute: () => rootRouteImport,
 } as any)
 const SellPropertyRoute = SellPropertyRouteImport.update({
@@ -373,6 +379,7 @@ export interface FileRoutesByFullPath {
   '/notifications': typeof NotificationsRoute
   '/reset-password': typeof ResetPasswordRoute
   '/sell-property': typeof SellPropertyRoute
+  '/staff-login': typeof StaffLoginRoute
   '/testimonials': typeof TestimonialsRoute
   '/wishlist': typeof WishlistRoute
   '/admin/about-page': typeof AdminAboutPageRoute
@@ -430,6 +437,7 @@ export interface FileRoutesByTo {
   '/notifications': typeof NotificationsRoute
   '/reset-password': typeof ResetPasswordRoute
   '/sell-property': typeof SellPropertyRoute
+  '/staff-login': typeof StaffLoginRoute
   '/testimonials': typeof TestimonialsRoute
   '/wishlist': typeof WishlistRoute
   '/admin/about-page': typeof AdminAboutPageRoute
@@ -489,6 +497,7 @@ export interface FileRoutesById {
   '/notifications': typeof NotificationsRoute
   '/reset-password': typeof ResetPasswordRoute
   '/sell-property': typeof SellPropertyRoute
+  '/staff-login': typeof StaffLoginRoute
   '/testimonials': typeof TestimonialsRoute
   '/wishlist': typeof WishlistRoute
   '/admin/about-page': typeof AdminAboutPageRoute
@@ -550,6 +559,7 @@ export interface FileRouteTypes {
     | '/notifications'
     | '/reset-password'
     | '/sell-property'
+    | '/staff-login'
     | '/testimonials'
     | '/wishlist'
     | '/admin/about-page'
@@ -607,6 +617,7 @@ export interface FileRouteTypes {
     | '/notifications'
     | '/reset-password'
     | '/sell-property'
+    | '/staff-login'
     | '/testimonials'
     | '/wishlist'
     | '/admin/about-page'
@@ -665,6 +676,7 @@ export interface FileRouteTypes {
     | '/notifications'
     | '/reset-password'
     | '/sell-property'
+    | '/staff-login'
     | '/testimonials'
     | '/wishlist'
     | '/admin/about-page'
@@ -725,6 +737,7 @@ export interface RootRouteChildren {
   NotificationsRoute: typeof NotificationsRoute
   ResetPasswordRoute: typeof ResetPasswordRoute
   SellPropertyRoute: typeof SellPropertyRoute
+  StaffLoginRoute: typeof StaffLoginRoute
   TestimonialsRoute: typeof TestimonialsRoute
   WishlistRoute: typeof WishlistRoute
   BuyPropertiesTypeRoute: typeof BuyPropertiesTypeRoute
@@ -747,6 +760,13 @@ declare module '@tanstack/react-router' {
       path: '/testimonials'
       fullPath: '/testimonials'
       preLoaderRoute: typeof TestimonialsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/staff-login': {
+      id: '/staff-login'
+      path: '/staff-login'
+      fullPath: '/staff-login'
+      preLoaderRoute: typeof StaffLoginRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/sell-property': {
@@ -1255,6 +1275,7 @@ const rootRouteChildren: RootRouteChildren = {
   NotificationsRoute: NotificationsRoute,
   ResetPasswordRoute: ResetPasswordRoute,
   SellPropertyRoute: SellPropertyRoute,
+  StaffLoginRoute: StaffLoginRoute,
   TestimonialsRoute: TestimonialsRoute,
   WishlistRoute: WishlistRoute,
   BuyPropertiesTypeRoute: BuyPropertiesTypeRoute,

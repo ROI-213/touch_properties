@@ -26,7 +26,7 @@ function VisitsPage() {
     enabled: !!user?.id,
   });
 
-  const visits = enquiries.filter(e => e.requirement_type === 'Site Visit' || e.status === 'Site Visit Scheduled' || e.message?.toLowerCase().includes('site visit'));
+  const visits = enquiries.filter((e: any) => e.requirement_type === 'Site Visit' || e.status === 'Site Visit Scheduled' || e.message?.toLowerCase().includes('site visit'));
 
   return (
     <div>
@@ -57,7 +57,7 @@ function VisitsPage() {
         </div>
       ) : (
         <div className="space-y-4">
-          {visits.map((visit) => (
+          {visits.map((visit: any) => (
             <div key={visit.id} className="rounded-2xl bg-white p-5 shadow-card transition hover:shadow-elevated flex flex-col sm:flex-row gap-5">
               <div className="grid h-16 w-16 shrink-0 place-items-center rounded-xl bg-emerald-50 text-emerald-600">
                 <Calendar size={28} />

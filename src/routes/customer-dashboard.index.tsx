@@ -36,7 +36,7 @@ function DashboardHome() {
     enabled: !!user?.id,
   });
 
-  const visits = enquiries.filter(e => e.requirement_type === 'Site Visit' || e.status === 'Site Visit Scheduled' || e.message?.toLowerCase().includes('site visit'));
+  const visits = enquiries.filter((e: any) => e.requirement_type === 'Site Visit' || e.status === 'Site Visit Scheduled' || e.message?.toLowerCase().includes('site visit'));
 
   const stats = [
     { label: "Wishlist", value: wishlist.length, icon: Heart, to: "/customer-dashboard/wishlist", color: "from-rose-400 to-rose-600" },

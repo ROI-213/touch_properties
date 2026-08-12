@@ -227,9 +227,8 @@ export function FeaturedProperties() {
       <section className="hidden md:block bg-ivory px-4 sm:px-6 lg:px-8 py-12 md:py-16 w-full">
         <div className="w-full">
           <motion.div
-            initial={{ y: 24 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
+            initial={{ opacity: 1, y: 0 }}
+            animate={{ opacity: 1, y: 0 }}
             className="text-center"
           >
             <div className="mx-auto mb-6 h-px w-10 bg-gold" />
@@ -264,19 +263,15 @@ export function FeaturedProperties() {
           <AnimatePresence mode="wait">
             <motion.div
               key={tab}
-              initial={{ opacity: 0 }}
+              initial={{ opacity: 1 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               transition={{ duration: 0.3 }}
               className="mt-10 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6"
             >
               {isLoading
-                ? Array.from({ length: 8 }).map((_, i) => (
-                    <PropertyCardSkeleton key={i} view="grid" />
-                  ))
-                : list.map((p, i) => (
-                    <PropertyCard key={p.id} p={p} index={i} />
-                  ))}
+                ? Array.from({ length: 4 }).map((_, i) => <PropertyCardSkeleton key={i} />)
+                : list.map((p, i) => <PropertyCard key={p.id} p={p} index={i} />)}
             </motion.div>
           </AnimatePresence>
 

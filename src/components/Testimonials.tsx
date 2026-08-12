@@ -208,11 +208,54 @@ function TestimonialCard({ t, index }: { t: Testimonial; index: number }) {
 
 /* ---------------- Main ---------------- */
 
+const DEFAULT_TESTIMONIALS: Testimonial[] = [
+  {
+    name: "Aarav Mehta",
+    role: "Founder, Mehta Capital",
+    location: "Whitefield, Bangalore",
+    text: "Touch Stone curated three properties that matched our brief perfectly. We closed in 11 days. Refreshingly transparent and zero pressure.",
+    rating: 5,
+    tag: "Buyer",
+    initials: "AM",
+    accent: ACCENT_BY_CATEGORY["Buyer"],
+  },
+  {
+    name: "Priya Raghavan",
+    role: "NRI Investor",
+    location: "Koramangala, Bangalore",
+    text: "From Dubai I needed someone I could trust completely. They handled legal, registration and even interior handover. White-glove service.",
+    rating: 5,
+    tag: "NRI",
+    initials: "PR",
+    accent: ACCENT_BY_CATEGORY["NRI"],
+  },
+  {
+    name: "Vikram Iyer",
+    role: "Property Owner",
+    location: "HSR Layout, Bangalore",
+    text: "The market intel was extraordinary — they showed us comparables, builder track records, RERA filings. Made a complicated decision feel obvious.",
+    rating: 5,
+    tag: "Owner",
+    initials: "VI",
+    accent: ACCENT_BY_CATEGORY["Owner"],
+  },
+  {
+    name: "Ananya Krishnan",
+    role: "Doctor",
+    location: "Indiranagar, Bangalore",
+    text: "Our family villa search took two years with other brokers. Touch Stone narrowed it to four homes that all fit. We loved one of them.",
+    rating: 5,
+    tag: "Buyer",
+    initials: "AK",
+    accent: ACCENT_BY_CATEGORY["Buyer"],
+  },
+];
+
 export function Testimonials() {
   const [active, setActive] = useState<Tab>("All");
   const { items: dbItems } = useTestimonials(true);
   const testimonials = useMemo<Testimonial[]>(
-    () => dbItems.map(mapDbTestimonial),
+    () => (dbItems && dbItems.length > 0 ? dbItems.map(mapDbTestimonial) : DEFAULT_TESTIMONIALS),
     [dbItems],
   );
 

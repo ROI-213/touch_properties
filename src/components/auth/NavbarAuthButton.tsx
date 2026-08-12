@@ -11,8 +11,13 @@ import {
 import { useAuth } from "@/contexts/AuthContext";
 import { useAuthModal } from "@/contexts/AuthModalContext";
 
+import { useIsAdmin } from "@/hooks/useIsAdmin";
+import { useStaffPermissions } from "@/hooks/useStaffPermissions";
+
 export function NavbarAuthButton() {
   const { user, profile, signOut, loading } = useAuth();
+  const { isAdmin } = useIsAdmin();
+  const { isStaff } = useStaffPermissions();
   const { openModal } = useAuthModal();
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
@@ -25,17 +30,33 @@ export function NavbarAuthButton() {
     return () => document.removeEventListener("mousedown", onClick);
   }, []);
 
-  if (!user) {
+  const isAdminOrStaff = isAdmin || isStaff;
+
+  // If no user is logged in, OR if the active account is an Admin/Staff account
+  // (which logged in via Admin panel), display the Login button on the public site!
+  if (!user || isAdminOrStaff) {
     return (
-      <button
-        onClick={() => openModal("login")}
-        className="group inline-flex items-center gap-1.5 rounded-full border border-black/10 bg-white px-3.5 py-2 text-[12.5px] font-semibold text-charcoal shadow-[0_4px_18px_rgba(0,0,0,0.06)] transition-all duration-300 hover:-translate-y-0.5 hover:border-[#C8A34D] hover:text-[#C8A34D] hover:shadow-[0_10px_28px_rgba(200,163,77,0.25)]"
-        style={{ fontFamily: "'Manrope', sans-serif" }}
-        aria-label="Login"
-      >
-        <UserIcon size={14} className="transition-transform group-hover:scale-110" />
-        <span className="hidden sm:inline">Login</span>
-      </button>
+      <div className="flex items-center gap-2">
+        <button
+          onClick={() => openModal("login")}
+          className="group inline-flex items-center gap-1.5 rounded-full border border-black/10 bg-white px-3.5 py-2 text-[12.5px] font-semibold text-charcoal shadow-[0_4px_18px_rgba(0,0,0,0.06)] transition-all duration-300 hover:-translate-y-0.5 hover:border-[#C8A34D] hover:text-[#C8A34D] hover:shadow-[0_10px_28px_rgba(200,163,77,0.25)]"
+          style={{ fontFamily: "'Manrope', sans-serif" }}
+          aria-label="Login"
+        >
+          <UserIcon size={14} className="transition-transform group-hover:scale-110" />
+          <span className="hidden sm:inline">Login</span>
+        </button>
+        {isAdminOrStaff && (
+          <Link
+            to="/admin"
+            className="hidden sm:inline-flex items-center gap-1 rounded-full bg-[#172B58] px-3.5 py-2 text-[12px] font-bold text-white shadow-sm transition hover:bg-[#21396F]"
+            style={{ fontFamily: "'Manrope', sans-serif" }}
+            title="Go to Admin CMS Panel"
+          >
+            <span>CMS Panel</span>
+          </Link>
+        )}
+      </div>
     );
   }
 

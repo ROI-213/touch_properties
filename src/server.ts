@@ -40,6 +40,34 @@ async function normalizeCatastrophicSsrResponse(response: Response): Promise<Res
 export default {
   async fetch(request: Request, env: unknown, ctx: unknown) {
     try {
+      const url = new URL(request.url);
+      
+      // Custom Storage Handler
+      if (url.pathname.startsWith("/api/storage/")) {
+        const parts = url.pathname.replace("/api/storage/", "").split("/");
+        if (parts.length >= 2) {
+          const bucket = parts[0];
+          const path = parts.slice(1).join("/");
+          
+          const { query } = await import("./server/db");
+          const res = await query(
+            "SELECT data, mimetype FROM public.custom_storage WHERE bucket = $1 AND path = $2",
+            [bucket, path]
+          );
+          
+          if (res.rows.length > 0) {
+            const row = res.rows[0];
+            return new Response(row.data, {
+              headers: {
+                "Content-Type": row.mimetype,
+                "Cache-Control": "public, max-age=31536000, immutable"
+              }
+            });
+          }
+          return new Response("Not Found", { status: 404 });
+        }
+      }
+
       const handler = await getServerEntry();
       const response = await handler.fetch(request, env, ctx);
       return await normalizeCatastrophicSsrResponse(response);

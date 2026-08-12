@@ -75,9 +75,9 @@ export function AssociatedPartners() {
 
 
   return (
-    <section className="relative bg-[#FBF8F2] py-8 md:py-10" id="associated-partners" aria-label="Associated Partners">
-      <div className="mx-auto w-full max-w-[1240px] px-4 sm:px-6">
-        <div className="rounded-[28px] border border-[#E5EAF0] bg-white px-5 py-8 shadow-[0_18px_50px_rgba(15,31,68,0.06)] sm:px-10 md:px-14 md:py-10">
+    <section className="relative w-full bg-[#FBF8F2] py-6 md:py-8" id="associated-partners" aria-label="Associated Partners">
+      <div className="w-full px-2 sm:px-4 md:px-6">
+        <div className="w-full rounded-[24px] sm:rounded-[28px] border border-[#E5EAF0] bg-white px-4 py-8 shadow-[0_18px_50px_rgba(15,31,68,0.06)] sm:px-8 md:px-12 md:py-10">
           <div className="mx-auto max-w-3xl text-center">
             <span className="inline-flex items-center gap-2 text-[11px] font-bold uppercase tracking-[3px] text-[#C8A34D]">
               <span className="h-px w-8 bg-[#C8A34D]" />

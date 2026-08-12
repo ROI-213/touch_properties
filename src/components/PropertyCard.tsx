@@ -50,9 +50,8 @@ export function PropertyCard({
 
   return (
     <motion.article
-      initial={{ y: 24 }}
-      whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true, margin: "-50px" }}
+      initial={{ opacity: 1, y: 0 }}
+      animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5, delay: Math.min(index * 0.05, 0.4) }}
       whileHover={{ y: -4 }}
       className={`group flex h-full flex-col justify-between overflow-hidden rounded-[14px] bg-card shadow-card transition-shadow duration-300 hover:shadow-elevated ${

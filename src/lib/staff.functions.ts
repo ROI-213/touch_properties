@@ -1,6 +1,8 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { query } from "@/server/db";
+import bcrypt from "bcrypt";
 
 async function assertAdmin(supabase: any, userId: string) {
   const { data, error } = await supabase.rpc("has_role", { _user_id: userId, _role: "admin" });
@@ -34,76 +36,90 @@ const createSchema = z.object({
 
 export const createStaffUser = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((d: unknown) => createSchema.parse(d))
+  .validator((d: unknown) => createSchema.parse(d))
   .handler(async ({ data, context }) => {
     await assertAdmin(context.supabase, context.userId);
-    const { supabaseAdmin } = await import("@/integrations/supabase/admin.server");
 
-    // Check for duplicates before creating auth user
+    // Check for duplicates
     if (data.employee_code) {
-      const { count } = await (supabaseAdmin.from("staff_users") as any)
-        .select("*", { count: "exact", head: true })
-        .eq("employee_code", data.employee_code);
-      if (count && count > 0) throw new Error("Employee code already in use");
+      const checkCode = await query("SELECT id FROM public.staff_users WHERE employee_code = $1", [data.employee_code]);
+      if (checkCode.rows.length > 0) throw new Error("Employee code already in use");
     }
     if (data.username) {
-      const { count } = await (supabaseAdmin.from("staff_users") as any)
-        .select("*", { count: "exact", head: true })
-        .eq("username", data.username);
-      if (count && count > 0) throw new Error("Username already in use");
+      const checkUser = await query("SELECT id FROM public.staff_users WHERE username = $1", [data.username]);
+      if (checkUser.rows.length > 0) throw new Error("Username already in use");
+    }
+    const checkEmail = await query("SELECT id FROM auth.users WHERE email = $1", [data.email]);
+    if (checkEmail.rows.length > 0) {
+      throw new Error("A user with this email already exists");
     }
 
-    // Create auth user (auto-confirmed)
-    const { data: created, error: createErr } = await supabaseAdmin.auth.admin.createUser({
-      email: data.email,
-      password: data.password,
-      email_confirm: true,
-      user_metadata: { full_name: data.name, phone: data.mobile ?? "" },
-    });
+    // Create auth user in auth.users table directly
+    const passwordHash = await bcrypt.hash(data.password, 10);
+    const authRes = await query(
+      `INSERT INTO auth.users (email, encrypted_password, raw_user_meta_data)
+       VALUES ($1, $2, $3)
+       RETURNING id`,
+      [data.email, passwordHash, JSON.stringify({ full_name: data.name, phone: data.mobile ?? "" })]
+    );
 
-    if (createErr || !created.user) {
-      console.error("[CreateStaff Auth Error]:", createErr);
-      throw new Error(createErr?.message ?? "Failed to create auth user");
+    if (!authRes.rows[0]?.id) {
+      throw new Error("Failed to create auth user");
     }
 
-    const authUserId = created.user.id;
+    const authUserId = authRes.rows[0].id;
 
     try {
       // Insert staff_users row
-      const { data: staffRow, error: insertErr } = await supabaseAdmin
-        .from("staff_users")
-        .insert({
-          auth_user_id: authUserId,
-          name: data.name,
-          email: data.email,
-          mobile: data.mobile ?? null,
-          designation: data.designation ?? null,
-          employee_code: data.employee_code ?? null,
-          username: data.username ?? null,
-          department: data.department ?? null,
-          branch: data.branch ?? null,
-          territory: data.territory ?? null,
-          joining_date: data.joining_date ?? null,
-          status: data.status,
-          created_by: context.userId,
-        } as any)
-        .select("id")
-        .single();
+      const staffRes = await query(
+        `INSERT INTO public.staff_users 
+         (auth_user_id, name, email, mobile, designation, employee_code, username, department, branch, territory, joining_date, status, plain_password, created_by)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)
+         RETURNING id`,
+        [
+          authUserId,
+          data.name,
+          data.email,
+          data.mobile ?? null,
+          data.designation ?? null,
+          data.employee_code ?? null,
+          data.username ?? null,
+          data.department ?? null,
+          data.branch ?? null,
+          data.territory ?? null,
+          data.joining_date ?? null,
+          data.status,
+          data.password,
+          context.userId,
+        ]
+      );
 
-      if (insertErr || !staffRow) {
-        console.error("[CreateStaff DB Insert Error]:", insertErr);
-        throw new Error(insertErr?.message ?? "Failed to insert staff record");
+      const staffRow = staffRes.rows[0];
+      if (!staffRow) {
+        throw new Error("Failed to insert staff record");
       }
 
       // Assign 'staff' role
-      await supabaseAdmin.from("user_roles").insert({ user_id: authUserId, role: "staff" }).select();
+      await query("INSERT INTO public.user_roles (user_id, role) VALUES ($1, 'staff')", [authUserId]);
 
+      // Insert permissions
       if (data.permissions.length > 0) {
-        const rows = data.permissions.map((p) => ({ ...p, staff_user_id: staffRow.id }));
-        const { error: permErr } = await supabaseAdmin.from("staff_permissions").insert(rows);
-        if (permErr) {
-          console.error("[CreateStaff Permissions Error]:", permErr);
-          throw new Error(permErr.message);
+        for (const p of data.permissions) {
+          await query(
+            `INSERT INTO public.staff_permissions 
+             (staff_user_id, module_name, can_view, can_add, can_edit, can_delete, can_publish, can_export)
+             VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`,
+            [
+              staffRow.id,
+              p.module_name,
+              p.can_view,
+              p.can_add,
+              p.can_edit,
+              p.can_delete,
+              p.can_publish,
+              p.can_export,
+            ]
+          );
         }
       }
 
@@ -111,7 +127,7 @@ export const createStaffUser = createServerFn({ method: "POST" })
     } catch (e: any) {
       // Rollback created Auth user on failure
       try {
-        await supabaseAdmin.auth.admin.deleteUser(authUserId);
+        await query("DELETE FROM auth.users WHERE id = $1", [authUserId]);
       } catch (rollbackErr) {
         console.error("[CreateStaff Rollback Error]:", rollbackErr);
       }
@@ -121,33 +137,28 @@ export const createStaffUser = createServerFn({ method: "POST" })
 
 export const resetStaffPassword = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((d: unknown) => z.object({ auth_user_id: z.string().uuid(), password: z.string().min(10) }).parse(d))
+  .validator((d: unknown) => z.object({ auth_user_id: z.string().uuid(), password: z.string().min(1) }).parse(d))
   .handler(async ({ data, context }) => {
     await assertAdmin(context.supabase, context.userId);
-    const { supabaseAdmin } = await import("@/integrations/supabase/admin.server");
-    const { error } = await supabaseAdmin.auth.admin.updateUserById(data.auth_user_id, { password: data.password });
-    if (error) {
-      console.error("[ResetPassword Auth Error]:", error);
-      throw new Error(error.message);
+    const passwordHash = await bcrypt.hash(data.password, 10);
+    const res = await query("UPDATE auth.users SET encrypted_password = $1 WHERE id = $2", [passwordHash, data.auth_user_id]);
+    await query("UPDATE public.staff_users SET plain_password = $1 WHERE auth_user_id = $2", [data.password, data.auth_user_id]);
+    if (res.rowCount === 0) {
+      throw new Error("Auth user not found or password update failed");
     }
     return { ok: true };
   });
 
 export const deleteStaffUser = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((d: unknown) => z.object({ staffId: z.string().uuid() }).parse(d))
+  .validator((d: unknown) => z.object({ staffId: z.string().uuid() }).parse(d))
   .handler(async ({ data, context }) => {
     await assertAdmin(context.supabase, context.userId);
-    const { supabaseAdmin } = await import("@/integrations/supabase/admin.server");
-    
-    // Load staff record
-    const { data: staff, error: staffError } = await supabaseAdmin
-      .from("staff_users")
-      .select("*")
-      .eq("id", data.staffId)
-      .maybeSingle();
 
-    if (staffError) throw new Error(staffError.message);
+    // Load staff record
+    const staffRes = await query("SELECT * FROM public.staff_users WHERE id = $1", [data.staffId]);
+    const staff = staffRes.rows[0];
+
     if (!staff) throw new Error("Staff record not found in database.");
 
     const authUserId = staff.auth_user_id;
@@ -156,34 +167,26 @@ export const deleteStaffUser = createServerFn({ method: "POST" })
       throw new Error("You cannot delete your own account.");
     }
 
-    const { data: adminRoles, error: adminRolesErr } = await supabaseAdmin.from("user_roles").select("user_id").eq("role", "admin");
-    if (adminRolesErr) throw new Error(adminRolesErr.message);
-    if (adminRoles.length <= 1 && adminRoles.some((r) => r.user_id === authUserId)) {
+    const adminRolesRes = await query("SELECT user_id FROM public.user_roles WHERE role = 'admin'");
+    const adminRoles = adminRolesRes.rows;
+    if (adminRoles.length <= 1 && adminRoles.some((r: any) => r.user_id === authUserId)) {
       throw new Error("Cannot delete the last remaining administrator.");
     }
 
-    let authUserAlreadyMissing = false;
-    const { error: authError } = await supabaseAdmin.auth.admin.deleteUser(authUserId);
-    
-    if (authError) {
-      if (authError.message.toLowerCase().includes("user not found")) {
-        authUserAlreadyMissing = true;
-      } else {
-        console.error("[DeleteStaff Auth Error]:", authError);
-        throw new Error(`Auth deletion failed: ${authError.message}`);
-      }
+    // Clean up permissions, tasks, roles, staff record, and auth user
+    await query("DELETE FROM public.staff_permissions WHERE staff_user_id = $1", [data.staffId]);
+    await query("DELETE FROM public.staff_tasks WHERE assigned_to = $1", [data.staffId]);
+    await query("DELETE FROM public.staff_users WHERE id = $1", [data.staffId]);
+
+    if (authUserId) {
+      await query("DELETE FROM public.user_roles WHERE user_id = $1", [authUserId]);
+      await query("DELETE FROM auth.users WHERE id = $1", [authUserId]);
     }
 
-    const { error: dbDeleteErr } = await supabaseAdmin.from("staff_users").delete().eq("id", data.staffId);
-    if (dbDeleteErr) throw new Error(`Database cleanup failed: ${dbDeleteErr.message}`);
-
-    return { 
-      success: true, 
-      staffDeleted: true, 
-      authUserDeleted: !authUserAlreadyMissing, 
-      authUserAlreadyMissing,
-      message: authUserAlreadyMissing 
-        ? "Staff member deleted successfully. The staff login was already missing from Supabase Authentication." 
-        : "Staff member deleted successfully."
+    return {
+      success: true,
+      staffDeleted: true,
+      authUserDeleted: true,
+      message: "Staff member deleted successfully.",
     };
   });

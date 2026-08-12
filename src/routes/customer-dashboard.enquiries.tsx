@@ -55,7 +55,7 @@ function EnquiriesPage() {
         </div>
       ) : (
         <div className="space-y-4">
-          {enquiries.map((enquiry) => (
+          {enquiries.map((enquiry: any) => (
             <div key={enquiry.id} className="rounded-2xl bg-white p-5 shadow-card transition hover:shadow-elevated">
               <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
                 <div>

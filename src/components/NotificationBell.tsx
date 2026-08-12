@@ -39,7 +39,7 @@ export function NotificationBell() {
     markAllAsRead,
     clearNotification,
     clearAllNotifications,
-  } = usePropertyNotifications();
+  } = usePropertyNotifications({ deep: open });
 
   // Format badge count: 99+ if > 99
   const badgeDisplay = unreadCount > 99 ? "99+" : unreadCount;

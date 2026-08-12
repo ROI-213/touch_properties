@@ -1,7 +1,6 @@
 import { MapPin, Phone, Mail } from "lucide-react";
 import { Link } from "@tanstack/react-router";
 import { useBrandSettings } from "@/hooks/useSiteSettings";
-import { resolveLocalImage } from "@/data/siteImages";
 import brandLogo from "@/assets/brand/logo.png";
 
 const SOCIAL_PATHS: Record<string, string> = {
@@ -57,7 +56,7 @@ export function Footer() {
     : `© ${year} ${brand.name}`;
 
   return (
-    <footer className="bg-[#0B2447] px-6 pb-28 md:pb-8 pt-16 md:pt-20 text-ivory">
+    <footer suppressHydrationWarning className="bg-[#0B2447] px-6 pb-28 md:pb-8 pt-16 md:pt-20 text-ivory">
       <div className="mx-auto grid w-full gap-10 md:grid-cols-2 lg:grid-cols-4">
         <div className="lg:col-span-1">
           <div className="flex items-center gap-3">

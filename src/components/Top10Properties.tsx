@@ -76,92 +76,110 @@ const baseAmenities = [
   { name: "Mini Theatre", icon: Tv },
 ];
 
-const initialsOf = (name: string) =>
-  name
-    .split(/\s+/)
-    .filter(Boolean)
-    .slice(0, 2)
-    .map((w) => w[0]?.toUpperCase() ?? "")
-    .join("");
+const initialsOf = (name?: string) =>
+  typeof name === "string" && name.trim()
+    ? name
+        .split(/\s+/)
+        .filter(Boolean)
+        .slice(0, 2)
+        .map((w) => w[0]?.toUpperCase() ?? "")
+        .join("") || "TSP"
+    : "TSP";
 
-const mapSiteProperties = (source: SiteProperty[]): Property[] => (Array.isArray(source) ? source : []).slice(0, 10).map((p, i) => {
-  const config =
-    p.type === "Plot"
-      ? "Premium Plots"
-      : p.bhk > 0
-        ? `${p.bhk} BHK ${p.type}`
-        : p.type;
-  const highlight = p.trending
-    ? "Trending"
-    : p.premium
-      ? "Premium"
-      : p.featured
-        ? "Featured"
-        : "New Launch";
-  return {
-    id: p.id,
-    slug: p.slug,
-    projectName: p.title,
-    builderName: p.builder,
-    builderLogo: initialsOf(p.builder),
-    location: p.location,
-    priceRange: p.price,
-    propertyType: p.type,
-    configuration: config,
-    status: p.possession ?? "Under Construction",
-    highlight,
-    heroImage: p.image,
-    galleryImages: [p.image],
-    overview: p.description,
-    highlights: [
-      "RERA approved with clear title",
-      "Vaastu-compliant layouts",
-      "Premium imported fittings",
-      "5-tier security system",
-      "Sustainable design with rainwater harvesting",
-      "EV charging in every parking bay",
-    ],
-    configurations:
-      p.type === "Plot"
-        ? [{ type: "Plot", size: `${p.sqft} sq.ft`, price: p.price }]
-        : [
-            {
-              type: `${p.bhk} BHK`,
-              size: `${p.sqft.toLocaleString()} sq.ft`,
-              price: p.price,
-            },
-          ],
-    amenities: baseAmenities,
-    floorPlans: [
-      {
-        name: `${p.bhk ? `${p.bhk} BHK ` : ""}${p.type} Plan`,
-        size: `${p.sqft} sq.ft`,
-        image: p.image,
+const mapSiteProperties = (source: any[]): Property[] =>
+  (Array.isArray(source) ? source : []).slice(0, 10).map((p: any, i: number) => {
+    const title = p?.title || p?.projectName || "Touchstone Property";
+    const builder = p?.builder || p?.builderName || "Touchstone Properties";
+    const rawImage = p?.image || p?.heroImage;
+    const image = resolveLocalImage(rawImage, FALLBACK_PROPERTY_IMAGE);
+    const description = p?.description || p?.overview || "Verified property in Bangalore.";
+    const price = p?.price || p?.priceRange || "Price on request";
+    const type = p?.type || p?.propertyType || "Apartment";
+    const bhk = typeof p?.bhk === "number" ? p.bhk : parseInt(String(p?.bhk || 0), 10) || 0;
+    const sqft = typeof p?.sqft === "number" ? p.sqft : parseInt(String(p?.sqft || 0), 10) || 0;
+    const slug = p?.slug || p?.id || `property-${i + 1}`;
+    const id = p?.id || slug;
+    const status = p?.possession || p?.status || "Under Construction";
+
+    const config =
+      type === "Plot"
+        ? "Premium Plots"
+        : bhk > 0
+          ? `${bhk} BHK ${type}`
+          : type;
+    const highlight = p?.trending
+      ? "Trending"
+      : p?.premium
+        ? "Premium"
+        : p?.featured
+          ? "Featured"
+          : p?.highlight || "New Launch";
+
+    return {
+      id,
+      slug,
+      projectName: title,
+      builderName: builder,
+      builderLogo: initialsOf(builder),
+      location: p?.location || "Bangalore",
+      priceRange: price,
+      propertyType: type,
+      configuration: config,
+      status,
+      highlight,
+      heroImage: image,
+      galleryImages: Array.isArray(p?.galleryImages) && p.galleryImages.length > 0 ? p.galleryImages : [image],
+      overview: description,
+      highlights: Array.isArray(p?.highlights) && p.highlights.length > 0 ? p.highlights : [
+        "RERA approved with clear title",
+        "Vaastu-compliant layouts",
+        "Premium imported fittings",
+        "5-tier security system",
+        "Sustainable design with rainwater harvesting",
+        "EV charging in every parking bay",
+      ],
+      configurations: Array.isArray(p?.configurations) && p.configurations.length > 0 ? p.configurations : (
+        type === "Plot"
+          ? [{ type: "Plot", size: `${sqft || 1200} sq.ft`, price }]
+          : [
+              {
+                type: `${bhk || 2} BHK`,
+                size: `${(sqft || 1200).toLocaleString()} sq.ft`,
+                price,
+              },
+            ]
+      ),
+      amenities: Array.isArray(p?.amenities) && p.amenities.length > 0 ? p.amenities : baseAmenities,
+      floorPlans: Array.isArray(p?.floorPlans) && p.floorPlans.length > 0 ? p.floorPlans : [
+        {
+          name: `${bhk ? `${bhk} BHK ` : ""}${type} Plan`,
+          size: `${sqft || 1200} sq.ft`,
+          image,
+        },
+      ],
+      locationAdvantages: Array.isArray(p?.locationAdvantages) && p.locationAdvantages.length > 0 ? p.locationAdvantages : [
+        { place: "Tech Park", distance: "12 min drive" },
+        { place: "International School", distance: "5 min walk" },
+        { place: "Metro Station", distance: "8 min drive" },
+        { place: "Multi-Specialty Hospital", distance: "6 min drive" },
+        { place: "Shopping Mall", distance: "10 min drive" },
+        { place: "International Airport", distance: "35 min drive" },
+      ],
+      priceBreakdown: Array.isArray(p?.priceBreakdown) && p.priceBreakdown.length > 0 ? p.priceBreakdown : [
+        { label: "Base Price", amount: price },
+        { label: "GST", amount: "As applicable" },
+        { label: "Registration & Stamp Duty", amount: "At actuals" },
+        { label: "Maintenance (1 year)", amount: "₹ 1.20 L" },
+      ],
+      builderInfo: p?.builderInfo || {
+        tagline: `${builder} — building landmarks`,
+        established: "—",
+        projects: "Multiple delivered",
+        description: `${builder} is among India's most respected real-estate brands, known for design excellence, on-time delivery, and uncompromising quality across residential and commercial portfolios.`,
       },
-    ],
-    locationAdvantages: [
-      { place: "Tech Park", distance: "12 min drive" },
-      { place: "International School", distance: "5 min walk" },
-      { place: "Metro Station", distance: "8 min drive" },
-      { place: "Multi-Specialty Hospital", distance: "6 min drive" },
-      { place: "Shopping Mall", distance: "10 min drive" },
-      { place: "International Airport", distance: "35 min drive" },
-    ],
-    priceBreakdown: [
-      { label: "Base Price", amount: p.price },
-      { label: "GST", amount: "As applicable" },
-      { label: "Registration & Stamp Duty", amount: "At actuals" },
-      { label: "Maintenance (1 year)", amount: "₹ 1.20 L" },
-    ],
-    builderInfo: {
-      tagline: `${p.builder} — building landmarks`,
-      established: "—",
-      projects: "Multiple delivered",
-      description: `${p.builder} is among India's most respected real-estate brands, known for design excellence, on-time delivery, and uncompromising quality across residential and commercial portfolios.`,
-    },
-    reraNumber: `PRM/KA/RERA/1251/446/PR/${230101 + i}`,
-  };
-});
+      reraNumber: p?.reraNumber || `PRM/KA/RERA/1251/446/PR/${230101 + i}`,
+    };
+  });
 
 const fallbackProperties = mapSiteProperties(sharedProperties);
 
@@ -627,16 +645,18 @@ export function Top10Properties() {
   const [open, setOpen] = useState<Property | null>(null);
 
   const properties = useMemo(() => {
-    const curated = (dbProps as any[]).filter((p) => p?.isTopFeatured);
+    const rawList = Array.isArray(dbProps) && dbProps.length > 0 ? dbProps : sharedProperties;
+    const curated = rawList.filter((p: any) => p?.isTopFeatured);
     if (curated.length > 0) {
       const sorted = [...curated].sort((a, b) => {
         const ra = a.topFeaturedRank ?? 999;
         const rb = b.topFeaturedRank ?? 999;
         return ra - rb;
       });
-      return mapSiteProperties(sorted.slice(0, 10) as SiteProperty[]);
+      return mapSiteProperties(sorted.slice(0, 10));
     }
-    return mapSiteProperties(dbProps.length > 0 ? dbProps : sharedProperties);
+    const mapped = mapSiteProperties(rawList);
+    return mapped.length > 0 ? mapped : fallbackProperties;
   }, [dbProps]);
 
   // Group properties into pairs of 2 so 2 properties are shown at a time
@@ -675,11 +695,7 @@ export function Top10Properties() {
     return () => clearInterval(timer);
   }, [paused, open, totalPairs]);
 
-  const activePair = useMemo(() => pairs[index] ?? pairs[0] ?? [], [pairs, index]);
-
-  if (!isLoading && properties.length === 0) {
-    return null;
-  }
+  const activePair = useMemo(() => pairs[index] ?? pairs[0] ?? fallbackProperties.slice(0, 2), [pairs, index]);
 
   return (
     <section className="relative overflow-hidden bg-gradient-to-b from-white via-violet-50/30 to-white py-8 sm:py-14">
@@ -687,9 +703,8 @@ export function Top10Properties() {
 
       <div className="relative mx-auto w-full px-3 sm:px-5 md:px-8 lg:px-10">
         <motion.div
-          initial={{ y: 24 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
+          initial={{ opacity: 1, y: 0 }}
+          animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6 }}
           className="text-center"
         >
@@ -715,31 +730,26 @@ export function Top10Properties() {
           onTouchEnd={onTouchEnd}
         >
           <div ref={trackRef} className="overflow-hidden p-1">
-            {isLoading ? (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
-                <Top10PropertyCardSkeleton />
-                <Top10PropertyCardSkeleton />
-              </div>
-            ) : (
-              <AnimatePresence mode="wait">
-                <motion.div
-                  key={index}
-                  initial={{ opacity: 0, x: 40 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  exit={{ opacity: 0, x: -40 }}
-                  transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
-                  className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6"
-                >
-                  {activePair.map((p) => (
-                    <SinglePropertyCard key={p.id} p={p} onOpen={() => setOpen(p)} />
-                  ))}
-                </motion.div>
-              </AnimatePresence>
-            )}
+            <AnimatePresence mode="wait">
+              <motion.div
+                key={index}
+                initial={{ opacity: 1, x: 0 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -40 }}
+                transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
+                className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6"
+              >
+                {isLoading
+                  ? Array.from({ length: 2 }).map((_, i) => <Top10PropertyCardSkeleton key={i} />)
+                  : activePair.map((p) => (
+                      <SinglePropertyCard key={p.id} p={p} onOpen={() => setOpen(p)} />
+                    ))}
+              </motion.div>
+            </AnimatePresence>
           </div>
 
           {/* Nav Arrows */}
-          {!isLoading && totalPairs > 1 && (
+          {totalPairs > 1 && (
             <>
               <button
                 onClick={prev}
@@ -760,7 +770,7 @@ export function Top10Properties() {
         </div>
 
         {/* Dots */}
-        {!isLoading && totalPairs > 1 && (
+        {totalPairs > 1 && (
           <div className="mt-8 flex items-center justify-center gap-2">
             {pairs.map((_, i) => (
               <button

@@ -139,13 +139,13 @@ function HeroSearchBar() {
   const wrapRef = useRef<HTMLDivElement>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const [rect, setRect] = useState<{ left: number; top: number; width: number } | null>(null);
-  const { data: allProps } = useDbProperties();
+  const { data: allProps } = useDbProperties({ enabled: open || q.trim().length > 0 });
   const { data: filters = SEARCH_FILTERS_DEFAULTS } = useQuery({
     queryKey: ["search-filters"],
     queryFn: getSearchFilters,
-    staleTime: 0,
-    refetchOnMount: "always",
-    refetchOnWindowFocus: true,
+    staleTime: 60_000,
+    refetchOnMount: false,
+    refetchOnWindowFocus: false,
   });
 
   useEffect(() => {
@@ -658,12 +658,12 @@ function HeroCarousel() {
 
 export function Hero() {
   return (
-    <section className="relative w-full px-3 pt-[70px] sm:px-5 sm:pt-[80px]">
+    <section className="relative w-full px-2 pt-[70px] sm:px-4 sm:pt-[80px]">
       <motion.div
         initial={false}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
-        className="mx-auto w-full max-w-[1280px]"
+        className="w-full"
       >
         <HeroCarousel />
       </motion.div>

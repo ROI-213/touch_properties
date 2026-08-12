@@ -26,20 +26,29 @@ const NAV: NavItem[] = [
 
 
 
+import { useIsAdmin } from "@/hooks/useIsAdmin";
+import { useStaffPermissions } from "@/hooks/useStaffPermissions";
+
 function DashboardLayout() {
   const { user, profile, loading, signOut } = useAuth();
+  const { isAdmin, isLoading: adminLoading } = useIsAdmin();
+  const { isStaff, isLoading: staffLoading } = useStaffPermissions();
   const { openModal } = useAuthModal();
   const navigate = useNavigate();
   const pathname = useRouterState({ select: (s) => s.location.pathname });
 
   useEffect(() => {
-    if (!loading && !user) {
-      openModal("login");
-      navigate({ to: "/" });
+    if (!loading && !adminLoading && !staffLoading) {
+      if (!user) {
+        openModal("login");
+        void navigate({ to: "/" });
+      } else if (isAdmin || isStaff) {
+        void navigate({ to: isAdmin ? "/admin/properties" : "/admin/tasks" });
+      }
     }
-  }, [loading, user, openModal, navigate]);
+  }, [loading, adminLoading, staffLoading, user, isAdmin, isStaff, openModal, navigate]);
 
-  if (loading || !user) {
+  if (loading || adminLoading || staffLoading || !user || isAdmin || isStaff) {
     return (
       <div className="min-h-screen bg-ivory">
         <Navbar />
