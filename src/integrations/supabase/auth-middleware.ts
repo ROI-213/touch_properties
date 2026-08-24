@@ -2,8 +2,7 @@ import { createMiddleware } from '@tanstack/react-start'
 import { getRequest } from '@tanstack/react-start/server'
 import { supabase } from './client'
 import jwt from 'jsonwebtoken';
-
-const JWT_SECRET = 'custom-secret-for-jwt-touch-590-properties-mock';
+import { getJwtSecret } from '@/lib/server-auth';
 
 export const requireSupabaseAuth = createMiddleware({ type: 'function' }).server(
   async ({ next }) => {
@@ -25,7 +24,7 @@ export const requireSupabaseAuth = createMiddleware({ type: 'function' }).server
 
     let decoded: any;
     try {
-      decoded = jwt.verify(token, JWT_SECRET);
+      decoded = jwt.verify(token, getJwtSecret());
     } catch (err) {
       throw new Error('Unauthorized: Invalid token');
     }

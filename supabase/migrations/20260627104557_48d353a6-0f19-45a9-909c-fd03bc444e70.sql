@@ -1,1 +1,0 @@
-REVOKE EXECUTE ON FUNCTION public.sync_hot_property_flag() FROM PUBLIC, anon, authenticated;

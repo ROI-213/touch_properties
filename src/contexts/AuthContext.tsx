@@ -66,7 +66,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setUser(null);
     setProfile(null);
     localStorage.removeItem("ts-auth-token");
-    document.cookie = "ts-auth-token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+    document.cookie = "ts-auth-token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; SameSite=Lax;";
   };
 
   useEffect(() => {
@@ -91,7 +91,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     localStorage.setItem("ts-auth-token", token);
     localStorage.setItem("ts-auth-user", JSON.stringify(userData));
     // also set cookie for SSR
-    document.cookie = `ts-auth-token=${token}; path=/`;
+    document.cookie = `ts-auth-token=${token}; path=/; SameSite=Lax;`;
     setSession({ access_token: token });
     setUser(userData);
     fetchProfile(userData.id);

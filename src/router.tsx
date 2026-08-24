@@ -82,7 +82,7 @@ export const getRouter = () => {
     routeTree,
     context: { queryClient: qc },
     scrollRestoration: true,
-    defaultPreloadStaleTime: 0,
+    defaultPreloadStaleTime: 60_000,
     defaultErrorComponent: DefaultErrorComponent,
   });
 

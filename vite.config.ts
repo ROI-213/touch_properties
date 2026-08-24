@@ -8,9 +8,14 @@ import { defineConfig } from "@lovable.dev/vite-tanstack-config";
 
 export default defineConfig({
   tanstackStart: {
-    // Redirect TanStack Start's bundled server entry to src/server.ts (our SSR error wrapper).
-    // nitro/vite builds from this
     server: { entry: "server" },
+  },
+  nitro: {
+    // "node-server" (default) produces .output/server/index.mjs, run with
+    //   node .output/server/index.mjs
+    // Override per environment when deploying elsewhere, e.g. on Vercel set
+    // NITRO_PRESET=vercel or on Cloudflare NITRO_PRESET=cloudflare-pages.
+    preset: process.env.NITRO_PRESET || "node-server",
   },
   vite: {
     esbuild: {

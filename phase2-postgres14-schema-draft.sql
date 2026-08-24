@@ -212,6 +212,19 @@ CREATE TABLE IF NOT EXISTS public."navigation_items" (
   "created_at" timestamp with time zone DEFAULT now() NOT NULL,
   "updated_at" timestamp with time zone DEFAULT now() NOT NULL
 );
+CREATE TABLE IF NOT EXISTS public."notifications" (
+  "id" uuid DEFAULT gen_random_uuid() NOT NULL,
+  "property_id" uuid,
+  "type" text NOT NULL,
+  "title" text NOT NULL,
+  "message" text NOT NULL,
+  "image_url" text,
+  "is_read" boolean DEFAULT false,
+  "is_active" boolean DEFAULT true,
+  "created_at" timestamp with time zone DEFAULT timezone('utc'::text, now()),
+  CONSTRAINT "notifications_pkey" PRIMARY KEY ("id"),
+  CONSTRAINT "notifications_property_id_fkey" FOREIGN KEY ("property_id") REFERENCES public."properties"("id") ON DELETE CASCADE
+);
 CREATE TABLE IF NOT EXISTS public."partners" (
   "id" uuid DEFAULT gen_random_uuid() NOT NULL,
   "name" text NOT NULL,
@@ -729,6 +742,7 @@ ALTER TABLE public."form_options" DISABLE ROW LEVEL SECURITY;
 ALTER TABLE public."hot_property_settings" DISABLE ROW LEVEL SECURITY;
 ALTER TABLE public."locations" DISABLE ROW LEVEL SECURITY;
 ALTER TABLE public."navigation_items" DISABLE ROW LEVEL SECURITY;
+ALTER TABLE public."notifications" DISABLE ROW LEVEL SECURITY;
 ALTER TABLE public."partners" DISABLE ROW LEVEL SECURITY;
 ALTER TABLE public."profiles" DISABLE ROW LEVEL SECURITY;
 ALTER TABLE public."properties" DISABLE ROW LEVEL SECURITY;

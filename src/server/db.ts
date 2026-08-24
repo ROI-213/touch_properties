@@ -6,7 +6,13 @@ const connectionString =
   process.env.DATABASE_URL ||
   process.env.POSTGRES_URL ||
   process.env.PGURI ||
-  'postgresql://touch590:ia1MVU8W0kU1Q347NF6aDNkHy@168.119.64.101:5432/touch590';
+  '';
+
+if (!connectionString) {
+  throw new Error(
+    '[db] No database connection string found. Set DATABASE_URL (or POSTGRES_URL / PGURI) in your environment.',
+  );
+}
 
 const isExplicitNoSsl = process.env.PGSSL === "false";
 

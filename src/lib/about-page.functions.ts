@@ -1,6 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { query } from "@/server/db";
 import type { AboutPageContent } from "./site-cms";
 
 const aboutPageContentSchema = z.object({
@@ -15,24 +16,10 @@ const aboutPageContentSchema = z.object({
 });
 
 export const getAboutPageContentFn = createServerFn({ method: "GET" }).handler(async () => {
-  // Direct PostgREST fetch — avoids @supabase/supabase-js so RealtimeClient
-  // never initializes on runtimes without a native WebSocket (e.g. Node 20).
-  const url = process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.VITE_SUPABASE_URL || "https://svdbmoozphbivdvdmlfu.supabase.co";
-  const key = process.env.SUPABASE_PUBLISHABLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY || process.env.VITE_SUPABASE_PUBLISHABLE_KEY || "sb_publishable_ThrfnIRx5NNAaV-xLkVftg_McfWpTMh";
-  const res = await fetch(
-    `${url}/rest/v1/site_settings?key=eq.about_page&select=value`,
-    {
-      headers: {
-        apikey: key,
-        Authorization: `Bearer ${key}`,
-        Accept: "application/json",
-      },
-    },
+  const { rows } = await query(
+    "SELECT value FROM public.site_settings WHERE key = $1",
+    ["about_page"],
   );
-  if (!res.ok) {
-    throw new Error(`About Us content read failed: ${res.status} ${await res.text()}`);
-  }
-  const rows = (await res.json()) as Array<{ value: unknown }>;
   return (rows[0]?.value ?? null) as Partial<AboutPageContent> | null;
 });
 

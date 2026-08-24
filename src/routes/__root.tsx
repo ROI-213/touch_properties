@@ -176,7 +176,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
           staleTime: 60_000,
         }),
       ]),
-      new Promise((resolve) => setTimeout(resolve, 1500)),
+      new Promise((resolve) => setTimeout(resolve, 3000)),
     ]);
   },
 
@@ -192,14 +192,14 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       },
       { name: "author", content: "Touch Stone Properties" },
       { property: "og:title", content: "Touch Stone Properties — Bangalore's Most Trusted Luxury Real Estate Broker" },
-      { property: "og:description", content: "A simple web application demonstrating a basic \"Hello, World!\" message." },
+      { property: "og:description", content: "Premium apartments, villas, plots and commercial spaces in Bangalore. 3,200+ verified properties, RERA-compliant, white-glove service for discerning buyers and NRI investors." },
       { property: "og:type", content: "website" },
+      { property: "og:url", content: "https://touchstoneproperties.in" },
       { name: "twitter:card", content: "summary_large_image" },
       { name: "twitter:title", content: "Touch Stone Properties — Bangalore's Most Trusted Luxury Real Estate Broker" },
-      { name: "description", content: "A simple web application demonstrating a basic \"Hello, World!\" message." },
-      { name: "twitter:description", content: "A simple web application demonstrating a basic \"Hello, World!\" message." },
-      { property: "og:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/cbb546f0-1ff3-4e0d-bc45-b7ec9071dd54/id-preview-d3bd606d--0c65c51b-8baa-40c9-92a8-3fc35fc2b19f.lovable.app-1782128799457.png" },
-      { name: "twitter:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/cbb546f0-1ff3-4e0d-bc45-b7ec9071dd54/id-preview-d3bd606d--0c65c51b-8baa-40c9-92a8-3fc35fc2b19f.lovable.app-1782128799457.png" },
+      { name: "twitter:description", content: "Premium apartments, villas, plots and commercial spaces in Bangalore. 3,200+ verified properties, RERA-compliant, white-glove service for discerning buyers and NRI investors." },
+      { property: "og:image", content: "/brand/icon.png" },
+      { name: "twitter:image", content: "/brand/icon.png" },
     ],
     links: [
       { rel: "stylesheet", href: appCss },

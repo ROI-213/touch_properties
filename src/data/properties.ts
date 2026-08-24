@@ -25,6 +25,8 @@ export interface Property {
   rera?: boolean;
   createdAt?: string;
   views?: number;
+  isTopFeatured?: boolean;
+  topFeaturedRank?: number | null;
 }
 
 import { siteImages, initialsAvatar } from "./siteImages";

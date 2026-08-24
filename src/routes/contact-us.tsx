@@ -26,7 +26,7 @@ export const Route = createFileRoute("/contact-us")({
 
 const WA = "https://wa.me/919902925519?text=" + encodeURIComponent("Hi Touch Stone Properties, I am interested in buying, selling, or renting a property. Please contact me.");
 const CALL = "tel:+919902925519";
-const EMAIL = "mailto:info@touchstoneproperties.com";
+const EMAIL = "mailto:info@touchstoneproperties.in";
 
 const schema = z.object({
   name: z.string().trim().min(2, "Please enter your name").max(80),
@@ -113,7 +113,7 @@ function ContactUsPage() {
           <div className="mt-12 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-5">
             {[
               { icon: Phone, title: "Phone Number", content: "+91 99029 25519", href: CALL },
-              { icon: Mail, title: "Email", content: "info@touchstoneproperties.com", href: EMAIL },
+              { icon: Mail, title: "Email", content: "info@touchstoneproperties.in", href: EMAIL },
               { icon: MapPin, title: "Office Address", content: "Bangalore, Karnataka, India", href: "#office-location" },
               { icon: Clock, title: "Working Hours", content: "Mon – Sat: 9:30 AM – 7:00 PM" },
               { icon: MessageCircle, title: "WhatsApp", content: "Chat with our expert instantly", href: WA, accent: "emerald" as const },
@@ -259,7 +259,7 @@ function ContactUsPage() {
               <div className="mt-5 space-y-4 text-sm">
                 <Info icon={MapPin} label="Address" value="Bangalore, Karnataka, India" />
                 <Info icon={Phone} label="Phone" value="+91 99029 25519" />
-                <Info icon={Mail} label="Email" value="info@touchstoneproperties.com" />
+                <Info icon={Mail} label="Email" value="info@touchstoneproperties.in" />
                 <Info icon={Clock} label="Hours" value="Mon – Sat: 9:30 AM – 7:00 PM" />
               </div>
               <a

@@ -11,7 +11,7 @@ export const Route = createFileRoute("/")({
         queryFn: () => getPublicPropertiesFn(),
         staleTime: 60_000,
       }),
-      new Promise((resolve) => setTimeout(resolve, 200)),
+      new Promise((resolve) => setTimeout(resolve, 3000)),
     ]);
   },
   head: () => ({

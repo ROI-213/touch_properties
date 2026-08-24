@@ -1,9 +1,8 @@
 import { createServerFn } from "@tanstack/react-start";
 import { query } from "@/server/db";
-import bcrypt from "bcrypt";
+import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
-
-const JWT_SECRET = 'custom-secret-for-jwt-touch-590-properties-mock';
+import { getJwtSecret } from "@/lib/server-auth";
 
 export const loginUserFn = createServerFn({ method: "POST" })
   .validator((d: any) => d as { email: string; password: string })
@@ -16,9 +15,16 @@ export const loginUserFn = createServerFn({ method: "POST" })
       const match = await bcrypt.compare(data.password, user.encrypted_password);
       if (!match) return { error: "Invalid credentials" };
 
-      const token = jwt.sign({ sub: user.id, email: user.email }, JWT_SECRET, { expiresIn: '7d' });
+      let token: string;
+      try {
+        token = jwt.sign({ sub: user.id, email: user.email }, getJwtSecret(), { expiresIn: '7d' });
+      } catch (secretErr: any) {
+        console.error("[loginUserFn]", secretErr?.message);
+        return { error: "Server authentication is not configured. Please contact support." };
+      }
       return { token, user: { id: user.id, email: user.email } };
     } catch (e: any) {
+      console.error("[loginUserFn] failed:", e?.message);
       return { error: e.message };
     }
   });
@@ -43,7 +49,7 @@ export const signupUserFn = createServerFn({ method: "POST" })
       // Assign customer role
       await query("INSERT INTO public.user_roles (user_id, role) VALUES ($1, 'customer')", [user.id]);
 
-      const token = jwt.sign({ sub: user.id, email: user.email }, JWT_SECRET, { expiresIn: '7d' });
+      const token = jwt.sign({ sub: user.id, email: user.email }, getJwtSecret(), { expiresIn: '7d' });
       return { token, user: { id: user.id, email: user.email } };
     } catch (e: any) {
       return { error: e.message };

@@ -2,7 +2,12 @@ const { Client } = require('pg');
 const fs = require('fs');
 const path = require('path');
 
-const connectionString = 'postgresql://touch590:ia1MVU8W0kU1Q347NF6aDNkHy@168.119.64.101:5432/touch590';
+const connectionString = process.env.DATABASE_URL;
+if (!connectionString) {
+  console.error('ERROR: DATABASE_URL is not set. Example:');
+  console.error('  DATABASE_URL="postgresql://user:pass@host:5432/db" node setup-db.cjs');
+  process.exit(1);
+}
 
 const initSql = `
 CREATE SCHEMA IF NOT EXISTS auth;
