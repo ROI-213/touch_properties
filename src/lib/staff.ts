@@ -50,20 +50,32 @@ export type StaffTask = {
 };
 
 export async function listStaff(): Promise<StaffUser[]> {
-  const { data, error } = await supabase.from("staff_users").select("*").order("created_at", { ascending: false });
+  const { data, error } = await supabase
+    .from("staff_users")
+    .select("*")
+    .order("created_at", { ascending: false });
   if (error) throw error;
-  return (data ?? []) as any as StaffUser[];
+  return (data ?? []) as unknown as StaffUser[];
 }
 
 export async function listStaffPermissions(staffUserId: string): Promise<StaffPermission[]> {
-  const { data, error } = await supabase.from("staff_permissions").select("*").eq("staff_user_id", staffUserId);
+  const { data, error } = await supabase
+    .from("staff_permissions")
+    .select("*")
+    .eq("staff_user_id", staffUserId);
   if (error) throw error;
   return (data ?? []) as StaffPermission[];
 }
 
-export async function upsertStaffPermissions(staffUserId: string, perms: Omit<StaffPermission, "id" | "staff_user_id">[]) {
+export async function upsertStaffPermissions(
+  staffUserId: string,
+  perms: Omit<StaffPermission, "id" | "staff_user_id">[],
+) {
   // Replace strategy: delete + insert
-  const { error: delErr } = await supabase.from("staff_permissions").delete().eq("staff_user_id", staffUserId);
+  const { error: delErr } = await supabase
+    .from("staff_permissions")
+    .delete()
+    .eq("staff_user_id", staffUserId);
   if (delErr) throw delErr;
   if (perms.length === 0) return;
   const rows = perms.map((p) => ({ staff_user_id: staffUserId, ...p }));
@@ -71,29 +83,43 @@ export async function upsertStaffPermissions(staffUserId: string, perms: Omit<St
   if (error) throw error;
 }
 
-export async function updateStaffStatus(id: string, status: "active" | "inactive") {
-  const patch = {
-    status,
-    deactivated_at: status === "inactive" ? new Date().toISOString() : null
+/** Typed shim for staff_users updates — the generated client types don't cover this table. */
+async function updateStaffUsersRow(id: string, patch: Record<string, unknown>) {
+  const table = supabase.from("staff_users") as unknown as {
+    update: (p: Record<string, unknown>) => {
+      eq: (
+        col: string,
+        val: string,
+      ) => PromiseLike<{ error: { message: string; details?: string; hint?: string } | null }>;
+    };
   };
-  const { error } = await (supabase.from("staff_users") as any).update(patch).eq("id", id);
+  const { error } = await table.update(patch).eq("id", id);
   if (error) throw error;
 }
 
-export async function updateStaffProfile(id: string, patch: { 
-  name?: string; 
-  mobile?: string | null; 
-  designation?: string | null;
-  employee_code?: string | null;
-  username?: string | null;
-  department?: string | null;
-  branch?: string | null;
-  territory?: string | null;
-  joining_date?: string | null;
-  plain_password?: string | null;
-}) {
-  const { error } = await (supabase.from("staff_users") as any).update(patch).eq("id", id);
-  if (error) throw error;
+export async function updateStaffStatus(id: string, status: "active" | "inactive") {
+  const patch = {
+    status,
+    deactivated_at: status === "inactive" ? new Date().toISOString() : null,
+  };
+  await updateStaffUsersRow(id, patch);
+}
+
+export async function updateStaffProfile(
+  id: string,
+  patch: {
+    name?: string;
+    mobile?: string | null;
+    designation?: string | null;
+    employee_code?: string | null;
+    username?: string | null;
+    department?: string | null;
+    branch?: string | null;
+    territory?: string | null;
+    joining_date?: string | null;
+  },
+) {
+  await updateStaffUsersRow(id, patch);
 }
 
 // Tasks
@@ -105,9 +131,13 @@ export async function listTasks(opts?: { assignedTo?: string }): Promise<StaffTa
   return (data ?? []) as StaffTask[];
 }
 
-export async function createTask(input: Omit<StaffTask, "id" | "created_at" | "updated_at" | "created_by">) {
+export async function createTask(
+  input: Omit<StaffTask, "id" | "created_at" | "updated_at" | "created_by">,
+) {
   const { data: u } = await supabase.auth.getUser();
-  const { error } = await supabase.from("staff_tasks").insert({ ...input, created_by: u.user?.id ?? null });
+  const { error } = await supabase
+    .from("staff_tasks")
+    .insert({ ...input, created_by: u.user?.id ?? null });
   if (error) throw error;
 }
 
@@ -124,6 +154,10 @@ export async function deleteTask(id: string) {
 export async function getMyStaffRecord(): Promise<StaffUser | null> {
   const { data: u } = await supabase.auth.getUser();
   if (!u.user) return null;
-  const { data } = await supabase.from("staff_users").select("*").eq("auth_user_id", u.user.id).maybeSingle();
+  const { data } = await supabase
+    .from("staff_users")
+    .select("*")
+    .eq("auth_user_id", u.user.id)
+    .maybeSingle();
   return (data as StaffUser | null) ?? null;
 }

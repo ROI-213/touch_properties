@@ -21,7 +21,7 @@ export function getJwtSecret(): string {
     throw new Error(
       "[auth] JWT_SECRET is not configured on this server. " +
         "Set the JWT_SECRET environment variable in your production environment " +
-        "(min 32 random chars) and redeploy."
+        "(min 32 random chars) and redeploy.",
     );
   }
   return DEV_JWT_FALLBACK;
@@ -55,14 +55,11 @@ export function getRequestAuth(): RequestAuth {
   }
 }
 
-export async function userHasRole(
-  userId: string,
-  role: string
-): Promise<boolean> {
+export async function userHasRole(userId: string, role: string): Promise<boolean> {
   try {
     const res = await dbQuery(
       "SELECT 1 FROM public.user_roles WHERE user_id = $1 AND role::text = $2 LIMIT 1",
-      [userId, role]
+      [userId, role],
     );
     return res.rows.length > 0;
   } catch {
@@ -81,7 +78,7 @@ export async function isOperator(userId: string): Promise<boolean> {
   try {
     const res = await dbQuery(
       "SELECT 1 FROM public.staff_users WHERE auth_user_id = $1 AND status = 'active' LIMIT 1",
-      [userId]
+      [userId],
     );
     return res.rows.length > 0;
   } catch {

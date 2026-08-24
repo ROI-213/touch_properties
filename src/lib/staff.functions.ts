@@ -4,7 +4,15 @@ import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { query } from "@/server/db";
 import bcrypt from "bcryptjs";
 
-async function assertAdmin(supabase: any, userId: string) {
+/** Minimal structural type for the app's Supabase-compatible client shim. */
+interface SupabaseLike {
+  rpc: (
+    fn: string,
+    params: Record<string, unknown>,
+  ) => Promise<{ data: unknown; error: { message: string } | null }>;
+}
+
+async function assertAdmin(supabase: SupabaseLike, userId: string) {
   const { data, error } = await supabase.rpc("has_role", { _user_id: userId, _role: "admin" });
   if (error) throw new Error(error.message);
   if (data !== true) throw new Error("Forbidden: admin role required");
@@ -23,15 +31,19 @@ const createSchema = z.object({
   joining_date: z.string().optional().nullable(),
   password: z.string().min(10),
   status: z.enum(["active", "inactive"]).default("active"),
-  permissions: z.array(z.object({
-    module_name: z.string(),
-    can_view: z.boolean(),
-    can_add: z.boolean(),
-    can_edit: z.boolean(),
-    can_delete: z.boolean(),
-    can_publish: z.boolean(),
-    can_export: z.boolean(),
-  })).default([]),
+  permissions: z
+    .array(
+      z.object({
+        module_name: z.string(),
+        can_view: z.boolean(),
+        can_add: z.boolean(),
+        can_edit: z.boolean(),
+        can_delete: z.boolean(),
+        can_publish: z.boolean(),
+        can_export: z.boolean(),
+      }),
+    )
+    .default([]),
 });
 
 export const createStaffUser = createServerFn({ method: "POST" })
@@ -42,11 +54,15 @@ export const createStaffUser = createServerFn({ method: "POST" })
 
     // Check for duplicates
     if (data.employee_code) {
-      const checkCode = await query("SELECT id FROM public.staff_users WHERE employee_code = $1", [data.employee_code]);
+      const checkCode = await query("SELECT id FROM public.staff_users WHERE employee_code = $1", [
+        data.employee_code,
+      ]);
       if (checkCode.rows.length > 0) throw new Error("Employee code already in use");
     }
     if (data.username) {
-      const checkUser = await query("SELECT id FROM public.staff_users WHERE username = $1", [data.username]);
+      const checkUser = await query("SELECT id FROM public.staff_users WHERE username = $1", [
+        data.username,
+      ]);
       if (checkUser.rows.length > 0) throw new Error("Username already in use");
     }
     const checkEmail = await query("SELECT id FROM auth.users WHERE email = $1", [data.email]);
@@ -60,7 +76,11 @@ export const createStaffUser = createServerFn({ method: "POST" })
       `INSERT INTO auth.users (email, encrypted_password, raw_user_meta_data)
        VALUES ($1, $2, $3)
        RETURNING id`,
-      [data.email, passwordHash, JSON.stringify({ full_name: data.name, phone: data.mobile ?? "" })]
+      [
+        data.email,
+        passwordHash,
+        JSON.stringify({ full_name: data.name, phone: data.mobile ?? "" }),
+      ],
     );
 
     if (!authRes.rows[0]?.id) {
@@ -70,11 +90,12 @@ export const createStaffUser = createServerFn({ method: "POST" })
     const authUserId = authRes.rows[0].id;
 
     try {
-      // Insert staff_users row
+      // Insert staff_users row. Passwords are stored ONLY as bcrypt hashes in
+      // auth.users — never in plaintext on staff_users.
       const staffRes = await query(
         `INSERT INTO public.staff_users 
-         (auth_user_id, name, email, mobile, designation, employee_code, username, department, branch, territory, joining_date, status, plain_password, created_by)
-         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)
+         (auth_user_id, name, email, mobile, designation, employee_code, username, department, branch, territory, joining_date, status, created_by)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)
          RETURNING id`,
         [
           authUserId,
@@ -89,9 +110,8 @@ export const createStaffUser = createServerFn({ method: "POST" })
           data.territory ?? null,
           data.joining_date ?? null,
           data.status,
-          data.password,
           context.userId,
-        ]
+        ],
       );
 
       const staffRow = staffRes.rows[0];
@@ -100,7 +120,9 @@ export const createStaffUser = createServerFn({ method: "POST" })
       }
 
       // Assign 'staff' role
-      await query("INSERT INTO public.user_roles (user_id, role) VALUES ($1, 'staff')", [authUserId]);
+      await query("INSERT INTO public.user_roles (user_id, role) VALUES ($1, 'staff')", [
+        authUserId,
+      ]);
 
       // Insert permissions
       if (data.permissions.length > 0) {
@@ -118,13 +140,13 @@ export const createStaffUser = createServerFn({ method: "POST" })
               p.can_delete,
               p.can_publish,
               p.can_export,
-            ]
+            ],
           );
         }
       }
 
       return { staffUserId: staffRow.id, authUserId };
-    } catch (e: any) {
+    } catch (e) {
       // Rollback created Auth user on failure
       try {
         await query("DELETE FROM auth.users WHERE id = $1", [authUserId]);
@@ -137,12 +159,16 @@ export const createStaffUser = createServerFn({ method: "POST" })
 
 export const resetStaffPassword = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .validator((d: unknown) => z.object({ auth_user_id: z.string().uuid(), password: z.string().min(1) }).parse(d))
+  .validator((d: unknown) =>
+    z.object({ auth_user_id: z.string().uuid(), password: z.string().min(1) }).parse(d),
+  )
   .handler(async ({ data, context }) => {
     await assertAdmin(context.supabase, context.userId);
     const passwordHash = await bcrypt.hash(data.password, 10);
-    const res = await query("UPDATE auth.users SET encrypted_password = $1 WHERE id = $2", [passwordHash, data.auth_user_id]);
-    await query("UPDATE public.staff_users SET plain_password = $1 WHERE auth_user_id = $2", [data.password, data.auth_user_id]);
+    const res = await query("UPDATE auth.users SET encrypted_password = $1 WHERE id = $2", [
+      passwordHash,
+      data.auth_user_id,
+    ]);
     if (res.rowCount === 0) {
       throw new Error("Auth user not found or password update failed");
     }
@@ -169,7 +195,10 @@ export const deleteStaffUser = createServerFn({ method: "POST" })
 
     const adminRolesRes = await query("SELECT user_id FROM public.user_roles WHERE role = 'admin'");
     const adminRoles = adminRolesRes.rows;
-    if (adminRoles.length <= 1 && adminRoles.some((r: any) => r.user_id === authUserId)) {
+    if (
+      adminRoles.length <= 1 &&
+      adminRoles.some((r: { user_id?: string }) => r.user_id === authUserId)
+    ) {
       throw new Error("Cannot delete the last remaining administrator.");
     }
 

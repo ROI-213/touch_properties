@@ -163,7 +163,10 @@ function returningColumns(table: string, selectStr: string | undefined): string 
     ].join(", ");
   }
 
-  const parts = selectStr.split(",").map((s) => s.trim()).filter(Boolean);
+  const parts = selectStr
+    .split(",")
+    .map((s) => s.trim())
+    .filter(Boolean);
   const kept = parts.filter((p) => !p.includes(":"));
   const safe = kept.map((p) => {
     // Allow plain identifiers and bare "*" only.
@@ -201,7 +204,15 @@ const PG_ARRAY_COLUMNS = new Set([
   "sell_property_enquiries.photos",
 ]);
 
-function toPgParam(table: string, column: string, value: any): any {
+/**
+ * Loose typing for the dynamic-SQL gateway. Row shapes and query payloads are
+ * genuinely dynamic (driven by whitelisted table/column names at runtime), so
+ * a single alias keeps that explicit instead of sprinkling `any` everywhere.
+ */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type Dyn = any;
+
+function toPgParam(table: string, column: string, value: Dyn): Dyn {
   if (value === null || value === undefined) return value;
   if (typeof value === "object") {
     if (PG_ARRAY_COLUMNS.has(table + "." + column)) return value;
@@ -211,12 +222,12 @@ function toPgParam(table: string, column: string, value: any): any {
 }
 
 /** Remove sensitive columns from result rows when requester is not an operator. */
-function stripSensitive(rows: any[], isOperatorUser: boolean): any[] {
+function stripSensitive(rows: Dyn[], isOperatorUser: boolean): Dyn[] {
   if (isOperatorUser || !Array.isArray(rows)) return rows;
   let stripped = false;
   const out = rows.map((row) => {
     if (!row || typeof row !== "object") return row;
-    let clone: any = null;
+    let clone: Dyn | null = null;
     for (const key of Object.keys(row)) {
       if (SENSITIVE_COLUMNS.has(key)) {
         if (!clone) clone = { ...row };
@@ -230,25 +241,51 @@ function stripSensitive(rows: any[], isOperatorUser: boolean): any[] {
   return out;
 }
 
-type QueryType = 'select' | 'insert' | 'update' | 'delete' | 'upsert';
+type QueryType = "select" | "insert" | "update" | "delete" | "upsert";
+
+interface DbFilter {
+  column: string;
+  op?: string;
+  value?: Dyn;
+}
+
+interface DbOrder {
+  column: string;
+  ascending?: boolean;
+}
 
 export const executeDbQueryFn = createServerFn({ method: "POST" })
-  .validator((d: any) => d as {
-    table: string;
-    type: QueryType;
-    selectStr?: string;
-    filters?: any[];
-    order?: any[];
-    limit?: number;
-    single?: boolean;
-    maybeSingle?: boolean;
-    payload?: any;
-    onConflict?: string;
-    returning?: boolean;
-  })
+  .validator(
+    (d: unknown) =>
+      d as {
+        table: string;
+        type: QueryType;
+        selectStr?: string;
+        filters?: DbFilter[];
+        order?: DbOrder[];
+        limit?: number;
+        single?: boolean;
+        maybeSingle?: boolean;
+        payload?: Dyn;
+        onConflict?: string;
+        returning?: boolean;
+      },
+  )
   .handler(async ({ data }) => {
     try {
-      const { table, type, selectStr, filters, order, limit, single, maybeSingle, payload, onConflict, returning } = data;
+      const {
+        table,
+        type,
+        selectStr,
+        filters,
+        order,
+        limit,
+        single,
+        maybeSingle,
+        payload,
+        onConflict,
+        returning,
+      } = data;
 
       // --- Authorization -------------------------------------------------
       if (!TABLES.has(table)) {
@@ -256,8 +293,7 @@ export const executeDbQueryFn = createServerFn({ method: "POST" })
       }
       assertIdent(table, "table");
       const policy = POLICIES[table];
-      const op: "select" | "insert" | "update" | "delete" =
-        type === "upsert" ? "insert" : type;
+      const op: "select" | "insert" | "update" | "delete" = type === "upsert" ? "insert" : type;
       const requiredLevel = levelFor(policy, op);
 
       let userId: string | null = null;
@@ -278,7 +314,7 @@ export const executeDbQueryFn = createServerFn({ method: "POST" })
       // operator-only. Enforce by requiring an auth_user_id self-filter.
       if (table === "staff_users" && type === "select" && !isOperatorUser) {
         const selfFilter = (filters ?? []).some(
-          (f) => f?.op === "eq" && f?.column === "auth_user_id" && f?.value === userId
+          (f) => f?.op === "eq" && f?.column === "auth_user_id" && f?.value === userId,
         );
         if (!selfFilter) {
           return { data: null, error: { message: "Forbidden: insufficient permissions." } };
@@ -297,9 +333,7 @@ export const executeDbQueryFn = createServerFn({ method: "POST" })
         }
       }
       if ((type === "insert" || type === "update" || type === "upsert") && payload) {
-        const keys = Array.isArray(payload)
-          ? Object.keys(payload[0] ?? {})
-          : Object.keys(payload);
+        const keys = Array.isArray(payload) ? Object.keys(payload[0] ?? {}) : Object.keys(payload);
         for (const k of keys) assertIdent(k, "payload");
       }
       if (onConflict) {
@@ -310,11 +344,11 @@ export const executeDbQueryFn = createServerFn({ method: "POST" })
 
       // --- SQL building (unchanged behaviour) ------------------------------
       let sql = "";
-      const params: any[] = [];
+      const params: Dyn[] = [];
       let paramIdx = 1;
 
-      if (type === 'select') {
-        if (table === 'properties' && selectStr && selectStr.includes('locations')) {
+      if (type === "select") {
+        if (table === "properties" && selectStr && selectStr.includes("locations")) {
           sql = `
             SELECT p.*,
                    (SELECT row_to_json(b) FROM (SELECT name FROM builders WHERE id = p.builder_id) b) as builder,
@@ -323,14 +357,14 @@ export const executeDbQueryFn = createServerFn({ method: "POST" })
             FROM properties p
           `;
         } else {
-          sql = "SELECT " + sanitizeSelectList(selectStr || '*') + " FROM " + table;
+          sql = "SELECT " + sanitizeSelectList(selectStr || "*") + " FROM " + table;
         }
-      } else if (type === 'insert') {
+      } else if (type === "insert") {
         const isArray = Array.isArray(payload);
         const rows = isArray ? payload : [payload];
         if (rows.length === 0) return { data: [], error: null };
         const keys = Object.keys(rows[0]);
-        sql = "INSERT INTO " + table + " (" + keys.join(', ') + ") VALUES ";
+        sql = "INSERT INTO " + table + " (" + keys.join(", ") + ") VALUES ";
         const values = [];
         for (const row of rows) {
           const rowVals = [];
@@ -338,16 +372,16 @@ export const executeDbQueryFn = createServerFn({ method: "POST" })
             rowVals.push("$" + paramIdx++);
             params.push(toPgParam(table, key, row[key]));
           }
-          values.push("(" + rowVals.join(', ') + ")");
+          values.push("(" + rowVals.join(", ") + ")");
         }
-        sql += values.join(', ');
+        sql += values.join(", ");
         if (returning || selectStr) sql += " RETURNING " + returningColumns(table, selectStr);
-      } else if (type === 'upsert') {
+      } else if (type === "upsert") {
         const isArray = Array.isArray(payload);
         const rows = isArray ? payload : [payload];
         if (rows.length === 0) return { data: [], error: null };
         const keys = Object.keys(rows[0]);
-        sql = "INSERT INTO " + table + " (" + keys.join(', ') + ") VALUES ";
+        sql = "INSERT INTO " + table + " (" + keys.join(", ") + ") VALUES ";
         const values = [];
         for (const row of rows) {
           const rowVals = [];
@@ -355,18 +389,24 @@ export const executeDbQueryFn = createServerFn({ method: "POST" })
             rowVals.push("$" + paramIdx++);
             params.push(toPgParam(table, key, row[key]));
           }
-          values.push("(" + rowVals.join(', ') + ")");
+          values.push("(" + rowVals.join(", ") + ")");
         }
-        sql += values.join(', ');
+        sql += values.join(", ");
         if (onConflict) {
-          const conflictCols = onConflict.split(',').map((s) => s.trim()).filter(Boolean);
+          const conflictCols = onConflict
+            .split(",")
+            .map((s) => s.trim())
+            .filter(Boolean);
           if (conflictCols.length > 0) {
-            sql += " ON CONFLICT (" + conflictCols.join(', ') + ") DO UPDATE SET " +
-              keys.map((k) => k + " = EXCLUDED." + k).join(', ');
+            sql +=
+              " ON CONFLICT (" +
+              conflictCols.join(", ") +
+              ") DO UPDATE SET " +
+              keys.map((k) => k + " = EXCLUDED." + k).join(", ");
           }
         }
         if (returning || selectStr) sql += " RETURNING " + returningColumns(table, selectStr);
-      } else if (type === 'update') {
+      } else if (type === "update") {
         const keys = Object.keys(payload);
         sql = "UPDATE " + table + " SET ";
         const sets = [];
@@ -374,52 +414,58 @@ export const executeDbQueryFn = createServerFn({ method: "POST" })
           sets.push(key + " = $" + paramIdx++);
           params.push(toPgParam(table, key, payload[key]));
         }
-        sql += sets.join(', ');
-      } else if (type === 'delete') {
+        sql += sets.join(", ");
+      } else if (type === "delete") {
         sql = "DELETE FROM " + table;
       }
 
       // Add WHERE clauses for select, update, delete
-      if ((type === 'select' || type === 'update' || type === 'delete') && filters && filters.length > 0) {
+      if (
+        (type === "select" || type === "update" || type === "delete") &&
+        filters &&
+        filters.length > 0
+      ) {
         sql += " WHERE ";
         const conditions = [];
         for (const f of filters) {
-          if (f.op === 'eq') {
+          if (f.op === "eq") {
             conditions.push(f.column + " = $" + paramIdx++);
             params.push(f.value);
-          } else if (f.op === 'in') {
-             const inPlaceholders = f.value.map(() => "$" + paramIdx++).join(', ');
-             conditions.push(f.column + " IN (" + inPlaceholders + ")");
-             params.push(...f.value);
-          } else if (f.op === 'gt') {
-             conditions.push(f.column + " > $" + paramIdx++);
-             params.push(f.value);
-          } else if (f.op === 'gte') {
-             conditions.push(f.column + " >= $" + paramIdx++);
-             params.push(f.value);
-          } else if (f.op === 'lt') {
-             conditions.push(f.column + " < $" + paramIdx++);
-             params.push(f.value);
-          } else if (f.op === 'lte') {
-             conditions.push(f.column + " <= $" + paramIdx++);
-             params.push(f.value);
-          } else if (f.op === 'ilike') {
-             conditions.push(f.column + " ILIKE $" + paramIdx++);
-             params.push(f.value);
+          } else if (f.op === "in") {
+            const inPlaceholders = f.value.map(() => "$" + paramIdx++).join(", ");
+            conditions.push(f.column + " IN (" + inPlaceholders + ")");
+            params.push(...f.value);
+          } else if (f.op === "gt") {
+            conditions.push(f.column + " > $" + paramIdx++);
+            params.push(f.value);
+          } else if (f.op === "gte") {
+            conditions.push(f.column + " >= $" + paramIdx++);
+            params.push(f.value);
+          } else if (f.op === "lt") {
+            conditions.push(f.column + " < $" + paramIdx++);
+            params.push(f.value);
+          } else if (f.op === "lte") {
+            conditions.push(f.column + " <= $" + paramIdx++);
+            params.push(f.value);
+          } else if (f.op === "ilike") {
+            conditions.push(f.column + " ILIKE $" + paramIdx++);
+            params.push(f.value);
           }
         }
-        sql += conditions.join(' AND ');
+        sql += conditions.join(" AND ");
       }
 
-      if (type === 'update' || type === 'delete') {
-         if (returning || selectStr) sql += " RETURNING " + returningColumns(table, selectStr);
+      if (type === "update" || type === "delete") {
+        if (returning || selectStr) sql += " RETURNING " + returningColumns(table, selectStr);
       }
 
-      if (type === 'select') {
+      if (type === "select") {
         if (order && order.length > 0) {
           sql += " ORDER BY ";
-          const orderings = order.map(o => o.column + " " + (o.ascending === false ? 'DESC' : 'ASC'));
-          sql += orderings.join(', ');
+          const orderings = order.map(
+            (o) => o.column + " " + (o.ascending === false ? "DESC" : "ASC"),
+          );
+          sql += orderings.join(", ");
         }
         if (limit) {
           sql += " LIMIT $" + paramIdx++;
@@ -434,22 +480,28 @@ export const executeDbQueryFn = createServerFn({ method: "POST" })
         if (returnData.length === 0) return { data: null, error: { message: "Row not found" } };
         returnData = stripSensitive([returnData[0]], isOperatorUser)[0];
       } else if (maybeSingle) {
-        returnData = returnData.length > 0
-          ? stripSensitive([returnData[0]], isOperatorUser)[0]
-          : null;
+        returnData =
+          returnData.length > 0 ? stripSensitive([returnData[0]], isOperatorUser)[0] : null;
       } else {
         returnData = stripSensitive(returnData, isOperatorUser);
       }
 
       return { data: returnData, error: null };
-    } catch (error: any) {
+    } catch (error) {
+      const err = error as { message?: string; code?: string };
       console.error(
         "[executeDbQueryFn] failed:",
-        error?.message,
-        "| op:", data?.type,
-        "| table:", data?.table,
-        "| code:", error?.code ?? "n/a"
+        err?.message,
+        "| op:",
+        data?.type,
+        "| table:",
+        data?.table,
+        "| code:",
+        err?.code ?? "n/a",
       );
-      return { data: null, error: { message: error.message || "Database operation failed. Please try again." } };
+      return {
+        data: null,
+        error: { message: err.message || "Database operation failed. Please try again." },
+      };
     }
   });
