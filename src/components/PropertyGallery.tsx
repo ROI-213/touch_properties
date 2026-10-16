@@ -8,9 +8,10 @@ import "swiper/css/pagination";
 import { FALLBACK_PROPERTY_IMAGE, resolveLocalImage } from "@/data/siteImages";
 
 export function PropertyGallery({ images, title }: { images: string[]; title: string }) {
-  const safeImages = Array.isArray(images) && images.length > 0
+  const resolved = Array.isArray(images) && images.length > 0
     ? images.filter(Boolean).map((src) => resolveLocalImage(src, FALLBACK_PROPERTY_IMAGE))
     : [FALLBACK_PROPERTY_IMAGE];
+  const safeImages = Array.from(new Set(resolved));
   const [open, setOpen] = useState(false);
   const [index, setIndex] = useState(0);
 
@@ -42,17 +43,23 @@ export function PropertyGallery({ images, title }: { images: string[]; title: st
 
   return (
     <>
-      {/* Mobile carousel */}
+      {/* Mobile view */}
       <div className="relative overflow-hidden rounded-2xl md:hidden">
-        <Swiper modules={[Pagination]} pagination={{ clickable: true }} className="h-[260px] sm:h-[320px] w-full">
-          {safeImages.map((src, i) => (
-            <SwiperSlide key={i}>
-              <button onClick={() => openAt(i)} className="block h-full w-full">
-                <img src={src} alt={`${title} ${i + 1}`} className="h-full w-full object-cover" />
-              </button>
-            </SwiperSlide>
-          ))}
-        </Swiper>
+        {safeImages.length === 1 ? (
+          <button onClick={() => openAt(0)} className="block h-[260px] sm:h-[320px] w-full">
+            <img src={safeImages[0]} alt={title} className="h-full w-full object-cover" />
+          </button>
+        ) : (
+          <Swiper modules={[Pagination]} pagination={{ clickable: true }} className="h-[260px] sm:h-[320px] w-full">
+            {safeImages.map((src, i) => (
+              <SwiperSlide key={i}>
+                <button onClick={() => openAt(i)} className="block h-full w-full">
+                  <img src={src} alt={`${title} ${i + 1}`} className="h-full w-full object-cover" />
+                </button>
+              </SwiperSlide>
+            ))}
+          </Swiper>
+        )}
         <button
           type="button"
           onClick={() => openAt(0)}
@@ -62,44 +69,67 @@ export function PropertyGallery({ images, title }: { images: string[]; title: st
         </button>
       </div>
 
-      {/* Desktop split */}
-      <div className="hidden gap-3 md:grid md:grid-cols-[62%_1fr]">
-        <button
-          onClick={() => openAt(0)}
-          className="group relative h-[520px] overflow-hidden rounded-xl"
-        >
-          <img
-            src={safeImages[0]}
-            alt={title}
-            className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
-          />
-        </button>
-        <div className="grid grid-cols-2 grid-rows-2 gap-3">
-          {thumbs.map((src, i) => {
-            const isLast = i === thumbs.length - 1 && safeImages.length > 5;
-            return (
-              <button
-                key={i}
-                onClick={() => openAt(i + 1)}
-                className="group relative overflow-hidden rounded-xl"
-              >
-                <img
-                  src={src}
-                  alt={`${title} ${i + 2}`}
-                  className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
-                />
-                {isLast && (
-                  <div className="absolute inset-0 grid place-items-center bg-black/60 text-white">
-                    <div className="flex items-center gap-2 text-sm font-medium">
-                      <Camera size={16} /> View All {safeImages.length} Photos
-                    </div>
-                  </div>
-                )}
-              </button>
-            );
-          })}
+      {/* Desktop view */}
+      {safeImages.length === 1 ? (
+        <div className="hidden md:block">
+          <button
+            onClick={() => openAt(0)}
+            className="group relative block h-[520px] w-full overflow-hidden rounded-xl"
+          >
+            <img
+              src={safeImages[0]}
+              alt={title}
+              className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+            />
+          </button>
         </div>
-      </div>
+      ) : (
+        <div className="hidden gap-3 md:grid md:grid-cols-[62%_1fr]">
+          <button
+            onClick={() => openAt(0)}
+            className="group relative h-[520px] overflow-hidden rounded-xl"
+          >
+            <img
+              src={safeImages[0]}
+              alt={title}
+              className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+            />
+          </button>
+          <div
+            className={`grid h-[520px] gap-3 ${
+              thumbs.length === 1
+                ? "grid-cols-1 grid-rows-1"
+                : thumbs.length === 2
+                  ? "grid-cols-1 grid-rows-2"
+                  : "grid-cols-2 grid-rows-2"
+            }`}
+          >
+            {thumbs.map((src, i) => {
+              const isLast = i === thumbs.length - 1 && safeImages.length > 5;
+              return (
+                <button
+                  key={i}
+                  onClick={() => openAt(i + 1)}
+                  className="group relative overflow-hidden rounded-xl"
+                >
+                  <img
+                    src={src}
+                    alt={`${title} ${i + 2}`}
+                    className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+                  />
+                  {isLast && (
+                    <div className="absolute inset-0 grid place-items-center bg-black/60 text-white">
+                      <div className="flex items-center gap-2 text-sm font-medium">
+                        <Camera size={16} /> View All {safeImages.length} Photos
+                      </div>
+                    </div>
+                  )}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      )}
 
       {/* Lightbox */}
       <AnimatePresence>
@@ -125,13 +155,15 @@ export function PropertyGallery({ images, title }: { images: string[]; title: st
             </div>
 
             <div className="relative flex flex-1 items-center justify-center">
-              <button
-                onClick={prev}
-                aria-label="Previous"
-                className="absolute left-2 grid h-12 w-12 place-items-center rounded-full bg-white/10 text-white hover:bg-white/25 sm:left-6"
-              >
-                <ChevronLeft size={26} />
-              </button>
+              {safeImages.length > 1 && (
+                <button
+                  onClick={prev}
+                  aria-label="Previous"
+                  className="absolute left-2 grid h-12 w-12 place-items-center rounded-full bg-white/10 text-white hover:bg-white/25 sm:left-6"
+                >
+                  <ChevronLeft size={26} />
+                </button>
+              )}
               <motion.img
                 key={index}
                 initial={{ opacity: 0, scale: 0.94 }}
@@ -142,28 +174,32 @@ export function PropertyGallery({ images, title }: { images: string[]; title: st
                 style={{ maxWidth: "90vw", maxHeight: "80vh" }}
                 className="rounded-lg object-contain"
               />
-              <button
-                onClick={next}
-                aria-label="Next"
-                className="absolute right-2 grid h-12 w-12 place-items-center rounded-full bg-white/10 text-white hover:bg-white/25 sm:right-6"
-              >
-                <ChevronRight size={26} />
-              </button>
+              {safeImages.length > 1 && (
+                <button
+                  onClick={next}
+                  aria-label="Next"
+                  className="absolute right-2 grid h-12 w-12 place-items-center rounded-full bg-white/10 text-white hover:bg-white/25 sm:right-6"
+                >
+                  <ChevronRight size={26} />
+                </button>
+              )}
             </div>
 
-            <div className="mt-4 flex gap-2 overflow-x-auto pb-2">
-              {safeImages.map((src, i) => (
-                <button
-                  key={i}
-                  onClick={() => setIndex(i)}
-                  className={`h-16 w-24 flex-shrink-0 overflow-hidden rounded-md border-2 transition ${
-                    i === index ? "border-gold" : "border-transparent opacity-60 hover:opacity-100"
-                  }`}
-                >
-                  <img src={src} alt="" className="h-full w-full object-cover" />
-                </button>
-              ))}
-            </div>
+            {safeImages.length > 1 && (
+              <div className="mt-4 flex gap-2 overflow-x-auto pb-2">
+                {safeImages.map((src, i) => (
+                  <button
+                    key={i}
+                    onClick={() => setIndex(i)}
+                    className={`h-16 w-24 flex-shrink-0 overflow-hidden rounded-md border-2 transition ${
+                      i === index ? "border-gold" : "border-transparent opacity-60 hover:opacity-100"
+                    }`}
+                  >
+                    <img src={src} alt="" className="h-full w-full object-cover" />
+                  </button>
+                ))}
+              </div>
+            )}
           </motion.div>
         )}
       </AnimatePresence>

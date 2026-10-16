@@ -26,18 +26,20 @@ function EditProperty() {
 
   const m = useMutation({
     mutationFn: async ({ values, images, amenityIds, assignments }: any) => {
-      await updateProperty(id, values);
-      // Sync images: delete those removed, add new ones (those without id)
       const existing = imgsQ.data ?? [];
       const keepUrls = new Set(images.filter((i: any) => i.id).map((i: any) => i.id));
-      for (const e of existing) {
-        if (!keepUrls.has(e.id)) await deletePropertyImage(e.id);
-      }
-      for (const img of images.filter((i: any) => !i.id)) {
-        await addPropertyImage(id, img.url, img.image_type, img.caption || "");
-      }
-      await setPropertyAmenities(id, amenityIds);
-      await saveAssignments(id, assignments ?? []);
+      const toDelete = existing.filter((e: any) => !keepUrls.has(e.id));
+      const toAdd = images.filter((i: any) => !i.id);
+
+      await Promise.all([
+        updateProperty(id, values),
+        ...toDelete.map((e: any) => deletePropertyImage(e.id)),
+        ...toAdd.map((img: any) =>
+          addPropertyImage(id, img.url, img.image_type, img.caption || ""),
+        ),
+        setPropertyAmenities(id, amenityIds),
+        saveAssignments(id, assignments ?? []),
+      ]);
     },
     onSuccess: () => {
       toast.success("Saved");
@@ -62,7 +64,9 @@ function EditProperty() {
     onError: (e: any) => toast.error(e.message),
   });
 
-  if (propQ.isLoading) return <div className="text-sm text-slate-500">Loading…</div>;
+  if (propQ.isLoading || imgsQ.isLoading || amenQ.isLoading || assignQ.isLoading) {
+    return <div className="text-sm text-slate-500">Loading…</div>;
+  }
   if (!propQ.data) return <div className="text-sm text-red-600">Property not found.</div>;
 
   return (

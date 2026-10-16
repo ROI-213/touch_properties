@@ -57,13 +57,15 @@ function HotPropertyCard({ p, settings }: { p: Property; settings?: HotPropertyS
   const enquireModal = useEnquireModal();
 
   const defaultImage = settings?.override_image || resolveLocalImage(p.image, FALLBACK_PROPERTY_IMAGE);
-  
-  // Extract gallery images or fallback array for image switcher
-  const galleryImages = [
-    defaultImage,
-    resolveLocalImage(siteImages.properties.sumadhuraEpitome, defaultImage),
-    resolveLocalImage(siteImages.properties.whitefieldVilla, defaultImage),
-  ].filter((img, idx, self) => self.indexOf(img) === idx);
+
+  const propGallery = Array.isArray((p as any).galleryImages)
+    ? ((p as any).galleryImages as string[])
+        .filter(Boolean)
+        .map((img) => resolveLocalImage(img, defaultImage))
+    : [];
+  const galleryImages = settings?.override_image
+    ? [defaultImage]
+    : Array.from(new Set(propGallery.length > 0 ? [defaultImage, ...propGallery] : [defaultImage])).slice(0, 4);
 
   const [activeImg, setActiveImg] = useState(defaultImage);
 
@@ -153,21 +155,25 @@ function HotPropertyCard({ p, settings }: { p: Property; settings?: HotPropertyS
 
               {/* Bottom Thumbnails & Status */}
               <div className="absolute bottom-2.5 inset-x-3 z-10 flex items-center justify-between gap-2">
-                <div className="flex items-center gap-1 rounded-lg bg-slate-950/65 p-1 backdrop-blur-md border border-white/10">
-                  {galleryImages.map((imgUrl, idx) => (
-                    <button
-                      key={idx}
-                      type="button"
-                      onClick={() => setActiveImg(imgUrl)}
-                      aria-label={`View photo ${idx + 1}`}
-                      className={`relative h-7 w-9 sm:h-8 sm:w-11 overflow-hidden rounded-md border transition-all ${
-                        activeImg === imgUrl ? "border-gold scale-105" : "border-transparent opacity-70 hover:opacity-100"
-                      }`}
-                    >
-                      <img src={imgUrl} alt="" className="h-full w-full object-cover" />
-                    </button>
-                  ))}
-                </div>
+                {galleryImages.length > 1 ? (
+                  <div className="flex items-center gap-1 rounded-lg bg-slate-950/65 p-1 backdrop-blur-md border border-white/10">
+                    {galleryImages.map((imgUrl, idx) => (
+                      <button
+                        key={idx}
+                        type="button"
+                        onClick={() => setActiveImg(imgUrl)}
+                        aria-label={`View photo ${idx + 1}`}
+                        className={`relative h-7 w-9 sm:h-8 sm:w-11 overflow-hidden rounded-md border transition-all ${
+                          activeImg === imgUrl ? "border-gold scale-105" : "border-transparent opacity-70 hover:opacity-100"
+                        }`}
+                      >
+                        <img src={imgUrl} alt="" className="h-full w-full object-cover" />
+                      </button>
+                    ))}
+                  </div>
+                ) : (
+                  <div />
+                )}
 
                 <span className="shrink-0 rounded-full bg-emerald-500/90 px-2.5 py-0.5 text-[10px] font-bold text-white backdrop-blur-md shadow-xs">
                   {p.possession || "Ready to Move"}

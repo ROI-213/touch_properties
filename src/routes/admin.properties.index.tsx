@@ -390,14 +390,14 @@ function PropertiesList() {
       </div>
 
       {/* Mobile Card View */}
-      <div className="mt-4 grid grid-cols-2 gap-3 md:hidden">
+      <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-3 md:hidden">
         {isLoading && (
-          <div className="rounded-2xl border border-slate-200 bg-white p-8 text-center text-sm text-slate-400">
+          <div className="col-span-full rounded-2xl border border-slate-200 bg-white p-8 text-center text-sm text-slate-400">
             Searching and loading properties…
           </div>
         )}
         {!isLoading && list.length === 0 && (
-          <div className="rounded-2xl border border-slate-200 bg-white p-8 text-center text-sm text-slate-500">
+          <div className="col-span-full rounded-2xl border border-slate-200 bg-white p-8 text-center text-sm text-slate-500">
             <p className="font-semibold text-slate-700">No properties found</p>
             <p className="mt-1 text-xs text-slate-500">Try refining your search query or clear filters.</p>
             <button
@@ -414,12 +414,12 @@ function PropertiesList() {
             <div
               key={p.id}
               onClick={() => toggleOne(p.id)}
-              className={`relative rounded-2xl border bg-white p-3 shadow-xs flex flex-col gap-3 transition-all cursor-pointer ${
+              className={`relative overflow-hidden rounded-2xl border bg-white p-3.5 shadow-xs flex flex-col gap-3 transition-all cursor-pointer ${
                 isSelected ? "border-[#c9a961] ring-2 ring-[#c9a961]/20 bg-[#c9a961]/5" : "border-slate-200"
               }`}
             >
               <div className="flex items-start justify-between gap-2.5">
-                <div className="flex items-start gap-3 min-w-0">
+                <div className="flex items-start gap-2.5 min-w-0 flex-1">
                   <label
                     onClick={(e) => e.stopPropagation()}
                     className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg border border-slate-300 bg-white shadow-xs cursor-pointer"
@@ -432,7 +432,7 @@ function PropertiesList() {
                       className="h-4 w-4 rounded accent-[#c9a961] cursor-pointer"
                     />
                   </label>
-                  <div className="min-w-0">
+                  <div className="min-w-0 flex-1">
                     <div className="font-bold text-sm text-[#0a1f44] truncate">{p.project_name}</div>
                     <div className="text-xs text-slate-500 truncate">
                       {p.builder?.name || "—"} · {p.location?.locality || p.address || "No location"}
@@ -449,7 +449,7 @@ function PropertiesList() {
                 </span>
               </div>
 
-              <div className="flex items-center justify-between gap-2 pt-0.5">
+              <div className="flex flex-wrap items-center justify-between gap-2 pt-0.5">
                 <div className="flex items-center gap-1.5" onClick={(e) => e.stopPropagation()}>
                   <FlagBtn active={p.is_featured} icon={Star} title="Featured" onClick={() => toggleFlag.mutate({ id: p.id, patch: { is_featured: !p.is_featured } })} />
                   <FlagBtn active={p.is_top_featured} icon={Crown} title="Top Featured" onClick={() => toggleFlag.mutate({ id: p.id, patch: { is_top_featured: !p.is_top_featured } })} />
@@ -457,35 +457,35 @@ function PropertiesList() {
                   <FlagBtn active={p.is_active} icon={p.is_active ? Eye : EyeOff} title="Active" onClick={() => toggleFlag.mutate({ id: p.id, patch: { is_active: !p.is_active } })} />
                 </div>
 
-                <div className="flex items-center gap-1" onClick={(e) => e.stopPropagation()}>
+                <div className="flex items-center gap-1.5" onClick={(e) => e.stopPropagation()}>
                   <button
                     onClick={(e) => handleIndividualShare(p, e)}
-                    className="grid h-9 w-9 place-items-center rounded-xl border border-amber-200 bg-amber-50 text-[#c9a961]"
+                    className="grid h-8 w-8 place-items-center rounded-xl border border-amber-200 bg-amber-50 text-[#c9a961]"
                     title="Share Property"
                   >
-                    <Share2 size={15} />
+                    <Share2 size={14} />
                   </button>
                   <Link
                     to="/admin/properties/$id"
                     params={{ id: p.id }}
-                    className="grid h-9 w-9 place-items-center rounded-xl border border-slate-200 text-slate-600 hover:bg-slate-100"
+                    className="grid h-8 w-8 place-items-center rounded-xl border border-slate-200 text-slate-600 hover:bg-slate-100"
                     title="Edit"
                   >
-                    <Edit2 size={15} />
+                    <Edit2 size={14} />
                   </Link>
                   <button
                     onClick={() => dup.mutate(p.id)}
-                    className="grid h-9 w-9 place-items-center rounded-xl border border-slate-200 text-slate-600 hover:bg-slate-100"
+                    className="grid h-8 w-8 place-items-center rounded-xl border border-slate-200 text-slate-600 hover:bg-slate-100"
                     title="Duplicate"
                   >
-                    <Copy size={15} />
+                    <Copy size={14} />
                   </button>
                   <button
                     onClick={() => setConfirmDelete({ ids: [p.id], label: `"${p.project_name}"` })}
-                    className="grid h-9 w-9 place-items-center rounded-xl border border-red-200 bg-red-50 text-red-600 hover:bg-red-100"
+                    className="grid h-8 w-8 place-items-center rounded-xl border border-red-200 bg-red-50 text-red-600 hover:bg-red-100"
                     title="Delete"
                   >
-                    <Trash2 size={15} />
+                    <Trash2 size={14} />
                   </button>
                 </div>
               </div>

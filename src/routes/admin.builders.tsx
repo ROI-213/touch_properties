@@ -61,10 +61,10 @@ function BuildersPage() {
     <div>
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
-          <h1 className="font-display text-3xl font-bold text-[#0a1f44]">Builders / Agents / Owners</h1>
-          <p className="mt-1 text-sm text-slate-500">{filtered.length} of {data?.length ?? 0} contacts</p>
+          <h1 className="font-display text-2xl sm:text-3xl font-bold text-[#0a1f44]">Builders / Agents / Owners</h1>
+          <p className="mt-1 text-xs sm:text-sm text-slate-500">{filtered.length} of {data?.length ?? 0} contacts</p>
         </div>
-        <button onClick={() => setEditing({})} className="inline-flex items-center gap-1.5 rounded-md bg-[#c9a961] px-4 py-2 text-sm font-medium text-white hover:bg-[#b89651]">
+        <button onClick={() => setEditing({})} className="inline-flex items-center gap-1.5 rounded-xl bg-[#c9a961] px-4 py-2 text-xs sm:text-sm font-semibold text-white hover:bg-[#b89651]">
           <Plus size={15} /> Add Contact
         </button>
       </div>
@@ -77,10 +77,11 @@ function BuildersPage() {
           </button>
         ))}
         <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search name, phone, email…"
-          className="ml-auto w-64 rounded-md border border-slate-200 px-3 py-1.5 text-sm outline-none focus:border-[#c9a961]" />
+          className="w-full sm:ml-auto sm:w-64 rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm outline-none focus:border-[#c9a961]" />
       </div>
 
-      <div className="mt-4 overflow-x-auto rounded-xl border border-slate-200 bg-white">
+      {/* Desktop Table */}
+      <div className="hidden md:block mt-4 overflow-x-auto rounded-xl border border-slate-200 bg-white">
         <table className="w-full text-sm">
           <thead className="bg-slate-50 text-left text-[11px] uppercase tracking-wider text-slate-500">
             <tr>
@@ -110,6 +111,35 @@ function BuildersPage() {
             ))}
           </tbody>
         </table>
+      </div>
+
+      {/* Mobile Cards */}
+      <div className="mt-4 grid grid-cols-1 gap-3 md:hidden">
+        {isLoading && <div className="rounded-xl border border-slate-200 bg-white p-8 text-center text-sm text-slate-400">Loading…</div>}
+        {!isLoading && filtered.length === 0 && <div className="rounded-xl border border-slate-200 bg-white p-8 text-center text-sm text-slate-400">No contacts.</div>}
+        {filtered.map((b: any) => (
+          <div key={b.id} className="flex items-center justify-between gap-3 rounded-xl border border-slate-200 bg-white p-3.5 shadow-xs">
+            <div className="flex items-center gap-3 min-w-0">
+              {b.logo_url ? (
+                <img src={b.logo_url} alt="" className="h-10 w-10 shrink-0 rounded-lg object-cover border border-slate-100" />
+              ) : (
+                <div className="grid h-10 w-10 shrink-0 place-items-center rounded-lg bg-slate-100 text-xs font-bold text-[#0a1f44]">
+                  {(b.display_name || b.name || "B").slice(0, 2).toUpperCase()}
+                </div>
+              )}
+              <div className="min-w-0">
+                <div className="truncate text-sm font-bold text-[#0a1f44]">{b.display_name || b.name}</div>
+                <div className="truncate text-xs text-slate-500">
+                  {typeLabel(b.contact_type)}{b.primary_phone ? ` · ${b.primary_phone}` : ""}
+                </div>
+              </div>
+            </div>
+            <div className="flex shrink-0 items-center gap-1.5">
+              <button onClick={() => setEditing(b)} className="grid h-8 w-8 place-items-center rounded-lg border border-slate-200 text-slate-600 hover:bg-slate-50" title="Edit"><Edit2 size={14} /></button>
+              <button onClick={() => { if (confirm(`Delete ${b.name}?`)) del.mutate(b.id); }} className="grid h-8 w-8 place-items-center rounded-lg border border-red-200 bg-red-50 text-red-600 hover:bg-red-100" title="Delete"><Trash2 size={14} /></button>
+            </div>
+          </div>
+        ))}
       </div>
 
       {editing && (
@@ -143,23 +173,23 @@ function ContactModal({ initial, onClose, onSave, submitting }: {
   const set = (k: string, val: any) => setV((s: any) => ({ ...s, [k]: val }));
 
   return (
-    <div className="fixed inset-0 z-50 grid place-items-center bg-black/50 p-4" onClick={onClose}>
-      <div className="w-full max-w-3xl rounded-xl bg-white shadow-xl" onClick={(e) => e.stopPropagation()}>
-        <div className="flex items-center justify-between border-b border-slate-200 px-6 py-4">
-          <h3 className="font-display text-lg font-semibold text-[#0a1f44]">{initial?.id ? "Edit Contact" : "New Contact"}</h3>
+    <div className="fixed inset-0 z-50 flex justify-center overflow-y-auto bg-black/50 p-3 sm:p-4" onClick={onClose}>
+      <div className="my-auto w-full max-w-3xl overflow-hidden rounded-xl bg-white shadow-xl" onClick={(e) => e.stopPropagation()}>
+        <div className="flex items-center justify-between border-b border-slate-200 px-4 py-3 sm:px-6 sm:py-4">
+          <h3 className="font-display text-base sm:text-lg font-semibold text-[#0a1f44]">{initial?.id ? "Edit Contact" : "New Contact"}</h3>
           <button onClick={onClose} className="text-slate-400 hover:text-slate-600"><X size={18} /></button>
         </div>
-        <div className="flex gap-1 border-b border-slate-200 px-4">
+        <div className="flex gap-1 overflow-x-auto border-b border-slate-200 px-3 sm:px-4">
           {(["details","contact","settings","notes"] as TabKey[]).map((t) => (
             <button key={t} onClick={() => setTab(t)} disabled={t === "notes" && !initial?.id}
-              className={`relative px-4 py-2 text-sm font-medium capitalize ${tab === t ? "text-[#0a1f44]" : "text-slate-500 hover:text-slate-700"} disabled:opacity-40`}>
+              className={`relative whitespace-nowrap px-3 sm:px-4 py-2 text-xs sm:text-sm font-medium capitalize ${tab === t ? "text-[#0a1f44]" : "text-slate-500 hover:text-slate-700"} disabled:opacity-40`}>
               {t === "notes" ? "Admin Notes" : t}
               {tab === t && <span className="absolute inset-x-3 -bottom-px h-0.5 bg-[#c9a961]" />}
             </button>
           ))}
         </div>
 
-        <div className="max-h-[70vh] overflow-y-auto p-6">
+        <div className="max-h-[70vh] overflow-y-auto p-4 sm:p-6">
           {tab === "details" && (
             <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
               <F label="Contact Type *">

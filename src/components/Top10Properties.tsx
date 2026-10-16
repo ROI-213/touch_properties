@@ -150,13 +150,7 @@ const mapSiteProperties = (source: any[]): Property[] =>
             ]
       ),
       amenities: Array.isArray(p?.amenities) && p.amenities.length > 0 ? p.amenities : baseAmenities,
-      floorPlans: Array.isArray(p?.floorPlans) && p.floorPlans.length > 0 ? p.floorPlans : [
-        {
-          name: `${bhk ? `${bhk} BHK ` : ""}${type} Plan`,
-          size: `${sqft || 1200} sq.ft`,
-          image,
-        },
-      ],
+      floorPlans: Array.isArray(p?.floorPlans) && p.floorPlans.length > 0 ? p.floorPlans : [],
       locationAdvantages: Array.isArray(p?.locationAdvantages) && p.locationAdvantages.length > 0 ? p.locationAdvantages : [
         { place: "Tech Park", distance: "12 min drive" },
         { place: "International School", distance: "5 min walk" },
@@ -337,28 +331,31 @@ function ConfigurationsTable({ rows }: { rows: Property["configurations"] }) {
 }
 
 function Gallery({ images }: { images: string[] }) {
-  const safeImages = Array.isArray(images) && images.length > 0
+  const resolved = Array.isArray(images) && images.length > 0
     ? images.filter(Boolean).map((src) => resolveLocalImage(src, FALLBACK_PROPERTY_IMAGE))
     : [FALLBACK_PROPERTY_IMAGE];
+  const safeImages = Array.from(new Set(resolved));
   const [active, setActive] = useState(0);
   return (
     <div>
       <div className="overflow-hidden rounded-2xl sm:rounded-3xl ring-1 ring-violet-100">
         <img src={safeImages[active] ?? safeImages[0]} alt="Gallery" className="h-[240px] w-full object-cover sm:h-[440px]" />
       </div>
-      <div className="mt-3 grid grid-cols-5 gap-2">
-        {safeImages.map((src, i) => (
-          <button
-            key={src}
-            onClick={() => setActive(i)}
-            className={`overflow-hidden rounded-xl ring-2 transition ${
-              i === active ? "ring-violet-600" : "ring-transparent hover:ring-violet-200"
-            }`}
-          >
-            <img src={src} alt="" className="h-14 w-full object-cover sm:h-20" />
-          </button>
-        ))}
-      </div>
+      {safeImages.length > 1 && (
+        <div className="mt-3 grid grid-cols-5 gap-2">
+          {safeImages.map((src, i) => (
+            <button
+              key={src}
+              onClick={() => setActive(i)}
+              className={`overflow-hidden rounded-xl ring-2 transition ${
+                i === active ? "ring-violet-600" : "ring-transparent hover:ring-violet-200"
+              }`}
+            >
+              <img src={src} alt="" className="h-14 w-full object-cover sm:h-20" />
+            </button>
+          ))}
+        </div>
+      )}
     </div>
   );
 }
@@ -546,19 +543,21 @@ function PropertyDetailsModal({ p, onClose }: { p: Property; onClose: () => void
               </div>
             </Section>
 
-            <Section title="Floor Plans" icon={Building2}>
-              <div className="grid gap-4 sm:grid-cols-3">
-                {floorPlans.map((fp) => (
-                  <div key={fp.name} className="overflow-hidden rounded-2xl bg-white ring-1 ring-violet-100">
-                    <img src={fp.image} alt={fp.name} className="h-40 w-full object-cover" />
-                    <div className="p-4">
-                      <div className="text-[14px] font-bold text-slate-900">{fp.name}</div>
-                      <div className="text-[12px] text-slate-500">{fp.size}</div>
+            {floorPlans.length > 0 && (
+              <Section title="Floor Plans" icon={Building2}>
+                <div className="grid gap-4 sm:grid-cols-3">
+                  {floorPlans.map((fp) => (
+                    <div key={fp.name} className="overflow-hidden rounded-2xl bg-white ring-1 ring-violet-100">
+                      <img src={fp.image} alt={fp.name} className="h-40 w-full object-cover" />
+                      <div className="p-4">
+                        <div className="text-[14px] font-bold text-slate-900">{fp.name}</div>
+                        <div className="text-[12px] text-slate-500">{fp.size}</div>
+                      </div>
                     </div>
-                  </div>
-                ))}
-              </div>
-            </Section>
+                  ))}
+                </div>
+              </Section>
+            )}
 
             <Section title="Price Breakdown" icon={Calendar}>
               <div className="overflow-hidden rounded-2xl ring-1 ring-violet-100">

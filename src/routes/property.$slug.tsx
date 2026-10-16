@@ -1,4 +1,3 @@
-import { propertyImageList } from "@/data/siteImages";
 import { useState } from "react";
 import { createFileRoute, Link, notFound } from "@tanstack/react-router";
 import { AnimatePresence, motion } from "framer-motion";
@@ -87,7 +86,7 @@ export const Route = createFileRoute("/property/$slug")({
         .select(
           "*, builder:builders!properties_builder_id_fkey(id, name, logo_url, primary_phone, whatsapp_number, email, website), location:locations!properties_location_id_fkey(zone, locality), property_images(url, image_type, display_order), property_assignments(*), property_amenities(amenity:amenities(id, name, icon))",
         )
-        .eq("slug", params.slug)
+        .ilike("slug", params.slug)
         .eq("is_active", true)
         .maybeSingle();
       if (data) {
@@ -109,7 +108,9 @@ export const Route = createFileRoute("/property/$slug")({
         const gallery = imgs
           .map((i) => i.url)
           .filter((u): u is string => !!u);
-        (property as any).galleryImages = hero ? [hero, ...gallery.filter((u) => u !== hero)] : gallery;
+        (property as any).galleryImages = Array.from(
+          new Set(hero ? [hero, ...gallery] : gallery),
+        );
         const links = ((data as any).property_amenities ?? []) as any[];
         (property as any).amenities = links
           .map((l) => l.amenity)
@@ -150,7 +151,7 @@ export const Route = createFileRoute("/property/$slug")({
       console.warn("[property loader] db lookup failed", e);
     }
     if (!property) {
-      const p = properties.find((x) => x.slug === params.slug);
+      const p = properties.find((x) => x.slug.toLowerCase() === params.slug.toLowerCase());
       if (!p) throw notFound();
       property = p;
     }
@@ -184,20 +185,6 @@ export const Route = createFileRoute("/property/$slug")({
   ),
   component: PropertyPage,
 });
-
-const EXTRA_IMAGES = [
-  propertyImageList[0],
-  propertyImageList[1],
-  propertyImageList[2],
-  propertyImageList[3],
-  propertyImageList[4],
-  propertyImageList[5],
-  propertyImageList[6],
-  propertyImageList[7],
-  propertyImageList[8],
-  propertyImageList[9],
-  propertyImageList[0],
-];
 
 const ALL_AMENITIES: { icon: string; label: string }[] = [
   { icon: "🏋️", label: "Gym" },
@@ -243,8 +230,8 @@ function PropertyPage() {
   const [emiOpen, setEmiOpen] = useState(false);
   const [saved, setSaved] = useState(false);
 
-  const galleryImages = ((initialProperty as any).galleryImages ?? []) as string[];
-  const gallery = (galleryImages.length > 0 ? galleryImages : [p.image]).slice(0, 12);
+  const galleryImages = ((initialProperty as any).galleryImages ?? (p as any).galleryImages ?? []) as string[];
+  const gallery = Array.from(new Set(galleryImages.length > 0 ? galleryImages : [p.image])).slice(0, 12);
 
   // Amenities from admin (DB). Fall back to default set if none configured.
   const dbAmenities = ((initialProperty as any).amenities ?? []) as { label: string; icon: string }[];

@@ -235,10 +235,14 @@ function RootComponent() {
                 <CmsRealtimeBridge />
                 <Outlet />
                 <SeoSync />
-                <WhatsAppButton />
+                {!location.pathname.startsWith("/admin") && (
+                  <>
+                    <WhatsAppButton />
+                    <CompareFloatingBar />
+                    <MobileBottomNav />
+                  </>
+                )}
                 <AuthModal />
-                <CompareFloatingBar />
-                <MobileBottomNav />
                 <Toaster position="bottom-center" />
               </ShareModalProvider>
             </EnquireModalProvider>

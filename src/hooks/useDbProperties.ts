@@ -32,6 +32,13 @@ export function dbRowToProperty(p: any): Property {
     safeText(images[0]?.url) ||
     FALLBACK_IMAGE;
 
+  const resolvedHero = resolveLocalImage(heroImg, FALLBACK_IMAGE);
+  const rawGallery = images
+    .map((i: any) => safeText(i?.url))
+    .filter(Boolean)
+    .map((u: string) => resolveLocalImage(u, FALLBACK_IMAGE));
+  const galleryImages = Array.from(new Set([resolvedHero, ...rawGallery]));
+
   const priceLabel = row.starting_price
     ? `₹ ${formatINR(safeNumber(row.starting_price))}${row.price_max ? "" : " onwards"}`
     : "Price on request";
@@ -52,7 +59,8 @@ export function dbRowToProperty(p: any): Property {
     baths: 0,
     sqft: parseInt((row.carpet_area ?? "0").toString(), 10) || 0,
     description: safeText(row.overview || row.highlights, "Verified property in Bangalore."),
-    image: resolveLocalImage(heroImg, FALLBACK_IMAGE),
+    image: resolvedHero,
+    galleryImages,
     possession: row.is_ready_to_move ? "Ready to Move" : "Under Construction",
     featured: row.is_featured || undefined,
     premium: row.is_top_featured || undefined,
@@ -61,7 +69,7 @@ export function dbRowToProperty(p: any): Property {
     isTopFeatured: !!row.is_top_featured,
     topFeaturedRank: typeof row.top_featured_rank === "number" ? row.top_featured_rank : null,
     assignedStaffId: row.assigned_staff_id ?? null,
-  } as Property & { isTopFeatured: boolean; topFeaturedRank: number | null; assignedStaffId: string | null };
+  } as Property & { isTopFeatured: boolean; topFeaturedRank: number | null; assignedStaffId: string | null; galleryImages: string[] };
 }
 
 function formatINR(n: number): string {
