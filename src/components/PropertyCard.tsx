@@ -61,7 +61,7 @@ export function PropertyCard({
       {/* Image */}
       <div
         className={`relative overflow-hidden ${
-          isList ? "h-[180px] sm:h-auto sm:w-[280px] sm:flex-shrink-0" : "h-[150px] sm:h-[220px] md:h-[250px]"
+          isList ? "h-[190px] sm:h-auto sm:w-[280px] sm:flex-shrink-0" : "h-[190px] sm:h-[220px] md:h-[250px]"
         }`}
       >
         <img
@@ -71,14 +71,14 @@ export function PropertyCard({
         />
 
         <span
-          className={`absolute left-2 top-2 rounded-full px-2 py-0.5 text-[10px] font-semibold text-white sm:left-3 sm:top-3 sm:px-3 sm:py-1 sm:text-[11px] ${
+          className={`absolute left-3 top-3 rounded-full px-2.5 py-0.5 text-[10.5px] font-semibold text-white sm:px-3 sm:py-1 sm:text-[11px] ${
             p.listingType === "BUY" ? "bg-gold" : "bg-sage"
           }`}
         >
           {p.listingType}
         </span>
 
-        <div className="absolute right-2 top-2 flex items-center gap-1.5 sm:right-3 sm:top-3 sm:gap-2">
+        <div className="absolute right-3 top-3 flex items-center gap-1.5 sm:gap-2">
           <ShareButton
             property={{
               title: p.title,
@@ -87,7 +87,7 @@ export function PropertyCard({
               price: p.price,
               image: p.image,
             }}
-            className="!h-7 !w-7 sm:!h-9 sm:!w-9 !border-transparent !bg-black/30 !text-white backdrop-blur-sm hover:!bg-black/50 hover:!text-white"
+            className="!h-8 !w-8 sm:!h-9 sm:!w-9 !border-transparent !bg-black/30 !text-white backdrop-blur-sm hover:!bg-black/50 hover:!text-white"
           />
           <motion.button
             whileTap={{ scale: 1.4 }}
@@ -97,14 +97,14 @@ export function PropertyCard({
               toggle(p.id);
             }}
             aria-label="Save to wishlist"
-            className="grid h-7 w-7 place-items-center rounded-full bg-black/30 backdrop-blur-sm transition hover:bg-black/50 sm:h-9 sm:w-9"
+            className="grid h-8 w-8 place-items-center rounded-full bg-black/30 backdrop-blur-sm transition hover:bg-black/50 sm:h-9 sm:w-9"
           >
-            <Heart className={`h-3.5 w-3.5 sm:h-4 sm:w-4 ${liked ? "fill-crimson text-crimson" : "text-white"}`} />
+            <Heart className={`h-4 w-4 ${liked ? "fill-crimson text-crimson" : "text-white"}`} />
           </motion.button>
         </div>
 
         {p.premium && (
-          <div className="absolute left-0 top-9 bg-gold px-2 py-0.5 text-[9px] font-semibold text-charcoal shadow-md sm:top-12 sm:px-3 sm:py-1 sm:text-[11px]">
+          <div className="absolute left-0 top-11 bg-gold px-2.5 py-0.5 text-[10px] font-semibold text-charcoal shadow-md sm:top-12 sm:px-3 sm:py-1 sm:text-[11px]">
             ⭐ Premium
           </div>
         )}
@@ -121,39 +121,39 @@ export function PropertyCard({
         )}
 
         <div
-          className="absolute inset-x-0 bottom-0 px-2.5 pb-2 pt-6 sm:px-4 sm:pb-3 sm:pt-10"
+          className="absolute inset-x-0 bottom-0 px-3.5 pb-2.5 pt-8 sm:px-4 sm:pb-3 sm:pt-10"
           style={{ background: "linear-gradient(to bottom, transparent, rgba(0,0,0,0.65))" }}
         >
-          <div className="font-numeric text-sm font-bold text-white sm:text-[20px]">{p.price}</div>
+          <div className="font-numeric text-base font-bold text-white sm:text-[20px]">{p.price}</div>
         </div>
       </div>
 
       {/* Body */}
-      <div className={`flex flex-1 flex-col justify-between p-3 sm:p-5 ${isList ? "flex-1" : ""}`}>
+      <div className={`flex flex-1 flex-col justify-between p-4 sm:p-5 ${isList ? "flex-1" : ""}`}>
         <div>
-          <div className="text-[9px] font-semibold uppercase tracking-[0.5px] text-gold sm:text-[11px] sm:tracking-[1px]">
+          <div className="text-[10px] font-semibold uppercase tracking-[0.8px] text-gold sm:text-[11px] sm:tracking-[1px]">
             {p.builder}
           </div>
-          <h3 className="mt-0.5 font-display text-sm font-semibold leading-snug text-charcoal sm:mt-1 sm:text-[20px] sm:leading-tight line-clamp-2">
+          <h3 className="mt-1 font-display text-base font-semibold leading-snug text-charcoal sm:text-[20px] sm:leading-tight line-clamp-2">
             {p.title}
           </h3>
-          <div className="mt-1 flex items-center gap-1 text-[11px] text-charcoal/60 sm:text-[13px]">
-            <MapPin className="h-3 w-3 shrink-0 sm:h-3.5 sm:w-3.5" /> <span className="truncate">{p.location}</span>
+          <div className="mt-1 flex items-center gap-1 text-[12px] text-charcoal/60 sm:text-[13px]">
+            <MapPin className="h-3.5 w-3.5 shrink-0" /> <span className="truncate">{p.location}</span>
           </div>
 
-          <div className="mt-2 flex flex-wrap items-center gap-1 w-full max-w-full overflow-hidden sm:mt-3 sm:gap-1.5">
-            {p.bhk > 0 && <Spec icon={<Bed className="h-3 w-3 sm:h-3.5 sm:w-3.5" />}>{p.bhk} BHK</Spec>}
-            {p.baths > 0 && <Spec icon={<Bath className="h-3 w-3 sm:h-3.5 sm:w-3.5" />}>{p.baths}</Spec>}
-            <Spec icon={<Maximize className="h-3 w-3 sm:h-3.5 sm:w-3.5" />}>{p.sqft.toLocaleString()} sqft</Spec>
+          <div className="mt-2.5 flex flex-wrap items-center gap-1.5 w-full max-w-full overflow-hidden sm:mt-3">
+            {p.bhk > 0 && <Spec icon={<Bed className="h-3.5 w-3.5" />}>{p.bhk} BHK</Spec>}
+            {p.baths > 0 && <Spec icon={<Bath className="h-3.5 w-3.5" />}>{p.baths}</Spec>}
+            <Spec icon={<Maximize className="h-3.5 w-3.5" />}>{p.sqft.toLocaleString()} sqft</Spec>
             {p.possession && (
-              <span className="inline-flex items-center rounded-full bg-sand px-1.5 py-0.5 text-[9.5px] font-medium text-charcoal/80 sm:px-2.5 sm:py-1 sm:text-[12px]">
+              <span className="inline-flex items-center rounded-full bg-sand px-2 py-0.5 text-[11px] font-medium text-charcoal/80 sm:px-2.5 sm:py-1 sm:text-[12px]">
                 {p.possession}
               </span>
             )}
           </div>
 
           <p
-            className={`mt-2 text-[11px] leading-relaxed text-charcoal/65 sm:mt-3 sm:text-[13px] ${
+            className={`mt-2.5 text-[12px] leading-relaxed text-charcoal/65 sm:mt-3 sm:text-[13px] ${
               isList ? "line-clamp-3" : "line-clamp-2"
             }`}
           >
@@ -161,11 +161,10 @@ export function PropertyCard({
           </p>
         </div>
 
-        {/* Card Footer Actions - Clean 2-Row Mobile / 1-Row Desktop Layout to prevent overlapping */}
-        <div className="mt-3 border-t border-charcoal/5 pt-2 sm:mt-4 sm:pt-3">
-          <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-            {/* Row 1: Compare + View Details */}
-            <div className="flex items-center justify-between w-full sm:w-auto gap-2">
+        {/* Card Footer Actions */}
+        <div className="mt-3.5 border-t border-charcoal/5 pt-3 sm:mt-4">
+          <div className="flex items-center justify-between gap-2">
+            <div className="flex items-center gap-3 min-w-0">
               <button
                 type="button"
                 onClick={(e) => {
@@ -173,17 +172,17 @@ export function PropertyCard({
                   e.stopPropagation();
                   toggleCompare(p.id);
                 }}
-                className="inline-flex shrink-0 cursor-pointer items-center gap-1 text-[11px] font-semibold text-charcoal/80 select-none hover:text-gold transition-colors active:scale-95 sm:text-[12px]"
+                className="inline-flex shrink-0 cursor-pointer items-center gap-1.5 text-[11.5px] font-semibold text-charcoal/80 select-none hover:text-gold transition-colors active:scale-95 sm:text-[12px]"
                 aria-label={`Compare ${p.title}`}
               >
                 <span
-                  className={`grid h-3.5 w-3.5 place-items-center rounded border transition-all duration-200 sm:h-4 sm:w-4 ${
+                  className={`grid h-4 w-4 place-items-center rounded border transition-all duration-200 ${
                     isComparing
                       ? "bg-gold border-gold text-white shadow-xs"
                       : "border-charcoal/40 bg-white hover:border-gold"
                   }`}
                 >
-                  {isComparing && <Check className="h-2.5 w-2.5 stroke-[3] sm:h-3 sm:w-3" />}
+                  {isComparing && <Check className="h-3 w-3 stroke-[3]" />}
                 </span>
                 <span>Compare</span>
               </button>
@@ -191,13 +190,12 @@ export function PropertyCard({
               <Link
                 to="/property/$slug"
                 params={{ slug: p.slug }}
-                className="shrink-0 text-[11px] font-bold text-gold hover:text-gold-light whitespace-nowrap sm:text-xs"
+                className="shrink-0 text-[11.5px] font-bold text-gold hover:text-gold-light whitespace-nowrap sm:text-xs"
               >
                 View Details →
               </Link>
             </div>
 
-            {/* Row 2: Enquire Button */}
             <button
               onClick={(e) => {
                 e.preventDefault();
@@ -210,7 +208,7 @@ export function PropertyCard({
                   assignedStaffId: (p as any).assignedStaffId ?? null,
                 });
               }}
-              className="inline-flex w-full sm:w-auto items-center justify-center gap-1 rounded-lg sm:rounded-full border border-gold bg-gold/5 px-2.5 py-1 text-[11px] font-semibold text-gold transition-colors hover:bg-gold hover:text-white whitespace-nowrap sm:px-3 sm:py-1.5 sm:text-xs shadow-xs"
+              className="inline-flex shrink-0 items-center justify-center gap-1 rounded-full border border-gold bg-gold/5 px-3 py-1.5 text-[11.5px] font-semibold text-gold transition-colors hover:bg-gold hover:text-white whitespace-nowrap sm:text-xs shadow-xs"
             >
               <Phone className="h-3 w-3 sm:h-3.5 sm:w-3.5" /> Enquire
             </button>
@@ -223,7 +221,7 @@ export function PropertyCard({
 
 function Spec({ icon, children }: { icon: React.ReactNode; children: React.ReactNode }) {
   return (
-    <span className="inline-flex shrink-0 items-center gap-1 rounded-full bg-sand px-1.5 py-0.5 text-[10px] text-charcoal/75 sm:px-2.5 sm:py-1 sm:text-[12px] whitespace-nowrap">
+    <span className="inline-flex shrink-0 items-center gap-1 rounded-full bg-sand px-2 py-0.5 text-[11px] text-charcoal/75 sm:px-2.5 sm:py-1 sm:text-[12px] whitespace-nowrap">
       {icon}
       {children}
     </span>

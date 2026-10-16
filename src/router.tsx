@@ -48,8 +48,9 @@ function getQueryClient() {
           },
           retryDelay: (attemptIndex) =>
             Math.min(1000 * 2 ** attemptIndex, 8000) + Math.floor(Math.random() * 250),
-          staleTime: 30_000,
+          staleTime: 60_000,
           refetchOnWindowFocus: false,
+          refetchOnReconnect: false,
         },
       },
     });
@@ -66,8 +67,9 @@ function getQueryClient() {
           },
           retryDelay: (attemptIndex) =>
             Math.min(1000 * 2 ** attemptIndex, 8000) + Math.floor(Math.random() * 250),
-          staleTime: 30_000,
+          staleTime: 60_000,
           refetchOnWindowFocus: false,
+          refetchOnReconnect: false,
         },
       },
     });
@@ -81,7 +83,8 @@ export const getRouter = () => {
   const router = createRouter({
     routeTree,
     context: { queryClient: qc },
-    scrollRestoration: true,
+    scrollRestoration: false,
+    defaultStaleTime: 60_000,
     defaultPreloadStaleTime: 60_000,
     defaultErrorComponent: DefaultErrorComponent,
   });

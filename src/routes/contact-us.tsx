@@ -274,28 +274,6 @@ function ContactUsPage() {
         </div>
       </section>
 
-      {/* QUICK CTA STRIP */}
-      <section id="whatsapp" className="px-6 pb-20">
-        <div className="mx-auto w-full">
-          <motion.div {...fadeUp}
-            className="flex flex-col items-center justify-between gap-6 rounded-3xl bg-gradient-to-br from-charcoal to-stone p-8 text-center text-ivory md:flex-row md:p-10 md:text-left"
-          >
-            <div>
-              <h3 className="font-display text-2xl md:text-3xl font-semibold">Need Immediate Property Assistance?</h3>
-              <p className="mt-2 text-ivory/70">Connect with our real estate expert instantly through call or WhatsApp.</p>
-            </div>
-            <div className="flex w-full flex-col gap-3 sm:flex-row md:w-auto">
-              <a href={CALL} className="inline-flex items-center justify-center gap-2 rounded-full bg-gold px-6 py-3 font-medium text-white shadow-gold hover:bg-gold-light transition">
-                <Phone size={16} /> Call Now
-              </a>
-              <a href={WA} target="_blank" rel="noreferrer" className="inline-flex items-center justify-center gap-2 rounded-full border border-gold bg-transparent px-6 py-3 font-medium text-gold hover:bg-gold hover:text-white transition">
-                <MessageCircle size={16} /> WhatsApp Now
-              </a>
-            </div>
-          </motion.div>
-        </div>
-      </section>
-
       {/* FINAL CTA */}
       <section id="speak-expert" className="relative overflow-hidden">
         <div className="absolute inset-0 bg-cover bg-center" style={{ backgroundImage: `url(${siteImages.hero.welcome})` }} />

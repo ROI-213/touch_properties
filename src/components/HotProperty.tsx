@@ -8,7 +8,6 @@ import {
   MapPin,
   Heart,
   Phone,
-  Check,
   Sparkles,
   ShieldCheck,
   ArrowRight,
@@ -75,18 +74,7 @@ function HotPropertyCard({ p, settings }: { p: Property; settings?: HotPropertyS
   const bedrooms = settings?.override_bedrooms ?? p.bhk;
   const bathrooms = settings?.override_bathrooms ?? p.baths;
   const area = settings?.override_area || (p.sqft ? `${p.sqft.toLocaleString()} sq.ft` : "—");
-  const description = settings?.override_description || p.description;
   const badge = settings?.badge_text || "Hot Deal";
-
-  const highlights =
-    settings?.highlights && settings.highlights.length > 0
-      ? settings.highlights
-      : [
-          p.possession || "Ready to Move",
-          p.furnishing || "Premium Finishes",
-          p.area ? `Prime ${p.area}` : "Prime Location",
-          "RERA Approved",
-        ];
 
   const waHref =
     settings?.cta_contact_url ||
@@ -95,89 +83,84 @@ function HotPropertyCard({ p, settings }: { p: Property; settings?: HotPropertyS
     )}`;
 
   return (
-    <section className="relative overflow-hidden bg-gradient-to-b from-[#FBF9F5] via-white to-[#FBF9F5] py-8 sm:py-12 px-2 sm:px-4 md:px-6 w-full">
+    <section className="relative overflow-hidden bg-gradient-to-b from-[#FBF9F5] via-white to-[#FBF9F5] py-5 sm:py-8 px-3 sm:px-4 md:px-6 w-full">
       {/* Background Orbs & Accents */}
-      <div className="pointer-events-none absolute -top-24 left-1/2 h-96 w-96 -translate-x-1/2 rounded-full bg-gold/10 blur-3xl" />
-      <div className="pointer-events-none absolute bottom-0 right-10 h-80 w-80 rounded-full bg-charcoal/5 blur-3xl" />
+      <div className="pointer-events-none absolute -top-24 left-1/2 h-72 w-72 -translate-x-1/2 rounded-full bg-gold/10 blur-3xl" />
 
-      <div className="relative mx-auto w-full max-w-[1600px]">
-        {/* Section Header */}
+      <div className="relative mx-auto w-full max-w-[1100px]">
+        {/* Compact Section Header */}
         <motion.div
           initial={{ y: 0, opacity: 1 }}
           animate={{ y: 0, opacity: 1 }}
-          transition={{ duration: 0.6 }}
+          transition={{ duration: 0.5 }}
           className="text-center"
         >
-          <span className="inline-flex items-center gap-2 rounded-full border border-gold/40 bg-gold/10 px-4 py-1.5 text-[11px] font-bold uppercase tracking-[2.5px] text-[#B8962E] shadow-xs">
-            <Sparkles size={13} className="text-[#B8962E]" /> Exclusive Spotlight
+          <span className="inline-flex items-center gap-1.5 rounded-full border border-gold/40 bg-gold/10 px-3 py-1 text-[10px] sm:text-[11px] font-bold uppercase tracking-[2px] text-[#B8962E]">
+            <Sparkles size={12} className="text-[#B8962E]" /> Exclusive Spotlight
           </span>
-          <h2 className="mt-3 font-display text-4xl font-bold text-slate-900 md:text-5xl lg:text-[54px] leading-tight">
+          <h2 className="mt-1.5 sm:mt-2 font-display text-2xl sm:text-3xl md:text-4xl font-bold text-slate-900 leading-tight">
             Hot Property <span className="italic text-[#B8962E]">of the Week</span>
           </h2>
-          <p className="mx-auto mt-2 max-w-2xl text-sm sm:text-base text-slate-600">
-            Hand-curated luxury listing featuring prime location, verified paperwork, and high appreciation potential.
-          </p>
         </motion.div>
 
-        {/* Featured Showcase Card */}
+        {/* Compact Featured Showcase Card */}
         <motion.article
           initial={{ y: 0, opacity: 1 }}
           animate={{ y: 0, opacity: 1 }}
-          transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
-          className="group relative mt-10 overflow-hidden rounded-[28px] border border-slate-200/80 bg-white shadow-[0_20px_50px_rgba(15,23,42,0.08)] transition-all duration-500 hover:shadow-[0_30px_70px_rgba(184,150,46,0.15)] hover:border-gold/30"
+          transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
+          className="group relative mt-4 sm:mt-6 overflow-hidden rounded-2xl sm:rounded-[24px] border border-slate-200/80 bg-white shadow-[0_14px_35px_rgba(15,23,42,0.07)] transition-all duration-500 hover:shadow-[0_20px_50px_rgba(184,150,46,0.14)] hover:border-gold/30"
         >
-          <div className="grid grid-cols-1 lg:grid-cols-12">
-            {/* Left Column — Interactive Image Gallery */}
-            <div className="relative overflow-hidden lg:col-span-6 lg:min-h-[580px] bg-slate-900">
+          <div className="grid grid-cols-1 md:grid-cols-12">
+            {/* Left Column — Image */}
+            <div className="relative overflow-hidden md:col-span-6 bg-slate-900">
               <AnimatePresence mode="wait">
                 <motion.img
                   key={activeImg}
                   src={activeImg}
                   alt={title}
-                  initial={{ scale: 1.05, opacity: 0.8 }}
+                  initial={{ scale: 1.03, opacity: 0.85 }}
                   animate={{ scale: 1, opacity: 1 }}
                   exit={{ opacity: 0.7 }}
-                  transition={{ duration: 0.5 }}
-                  className="h-80 w-full object-cover sm:h-[420px] lg:h-full transition-transform duration-700 group-hover:scale-105"
+                  transition={{ duration: 0.4 }}
+                  className="h-48 w-full object-cover sm:h-60 md:h-full md:min-h-[260px] transition-transform duration-700 group-hover:scale-105"
                   loading="lazy"
                 />
               </AnimatePresence>
 
-              {/* Gradient Overlays for Badges */}
-              <div className="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-transparent to-slate-950/40 pointer-events-none" />
+              <div className="absolute inset-0 bg-gradient-to-t from-slate-950/75 via-transparent to-slate-950/30 pointer-events-none" />
 
-              {/* Top Left — Animated Flame Badge */}
-              <div className="absolute left-4 top-4 z-10 flex items-center gap-2">
-                <span className="inline-flex items-center gap-1.5 rounded-full bg-gradient-to-r from-[#ff3d00] to-[#ff8a00] px-4 py-2 text-xs font-extrabold uppercase tracking-wider text-white shadow-lg animate-pulse">
-                  <Flame size={15} className="fill-white" /> {badge}
+              {/* Top Left — Hot Deal Badge */}
+              <div className="absolute left-3 top-3 z-10 flex items-center gap-1.5">
+                <span className="inline-flex items-center gap-1 rounded-full bg-gradient-to-r from-[#ff3d00] to-[#ff8a00] px-2.5 py-1 text-[10px] sm:text-[11px] font-extrabold uppercase tracking-wider text-white shadow-md">
+                  <Flame size={12} className="fill-white" /> {badge}
+                </span>
+                <span className="rounded-full bg-slate-950/75 px-2.5 py-1 text-[10px] font-semibold text-white backdrop-blur-md border border-white/10">
+                  {propertyType}
                 </span>
               </div>
 
-              {/* Top Right — RERA & Wishlist */}
-              <div className="absolute right-4 top-4 z-10 flex items-center gap-2">
-                <span className="hidden sm:inline-flex items-center gap-1 rounded-full bg-white/90 backdrop-blur-md px-3 py-1.5 text-[11px] font-bold text-slate-800 shadow-md">
-                  <ShieldCheck size={14} className="text-emerald-600" /> RERA Verified
-                </span>
+              {/* Top Right — Wishlist */}
+              <div className="absolute right-3 top-3 z-10 flex items-center gap-1.5">
                 <button
                   type="button"
                   onClick={() => toggle(p.id)}
                   aria-label={liked ? "Remove from wishlist" : "Add to wishlist"}
-                  className="grid h-10 w-10 place-items-center rounded-full bg-white/95 text-slate-800 shadow-md backdrop-blur-md transition hover:scale-110 hover:bg-white"
+                  className="grid h-8 w-8 sm:h-9 sm:w-9 place-items-center rounded-full bg-white/95 text-slate-800 shadow-md backdrop-blur-md transition hover:scale-110"
                 >
-                  <Heart className={`h-5 w-5 ${liked ? "fill-rose-500 text-rose-500" : "text-slate-700"}`} />
+                  <Heart className={`h-4 w-4 ${liked ? "fill-rose-500 text-rose-500" : "text-slate-700"}`} />
                 </button>
               </div>
 
-              {/* Bottom Image Thumbnails & Info Bar */}
-              <div className="absolute bottom-4 inset-x-4 z-10 flex flex-wrap items-center justify-between gap-3">
-                <div className="flex items-center gap-1.5 rounded-xl bg-slate-950/70 p-1.5 backdrop-blur-md border border-white/10">
+              {/* Bottom Thumbnails & Status */}
+              <div className="absolute bottom-2.5 inset-x-3 z-10 flex items-center justify-between gap-2">
+                <div className="flex items-center gap-1 rounded-lg bg-slate-950/65 p-1 backdrop-blur-md border border-white/10">
                   {galleryImages.map((imgUrl, idx) => (
                     <button
                       key={idx}
                       type="button"
                       onClick={() => setActiveImg(imgUrl)}
                       aria-label={`View photo ${idx + 1}`}
-                      className={`relative h-11 w-14 overflow-hidden rounded-lg border-2 transition-all ${
+                      className={`relative h-7 w-9 sm:h-8 sm:w-11 overflow-hidden rounded-md border transition-all ${
                         activeImg === imgUrl ? "border-gold scale-105" : "border-transparent opacity-70 hover:opacity-100"
                       }`}
                     >
@@ -186,111 +169,75 @@ function HotPropertyCard({ p, settings }: { p: Property; settings?: HotPropertyS
                   ))}
                 </div>
 
-                <span className="rounded-full bg-slate-950/80 px-4 py-1.5 text-xs font-semibold text-white backdrop-blur-md border border-white/10">
-                  {propertyType} • {p.listingType === "RENT" ? "For Rent" : "For Sale"}
+                <span className="shrink-0 rounded-full bg-emerald-500/90 px-2.5 py-0.5 text-[10px] font-bold text-white backdrop-blur-md shadow-xs">
+                  {p.possession || "Ready to Move"}
                 </span>
               </div>
             </div>
 
-            {/* Right Column — Details & Actions */}
-            <div className="flex flex-col justify-between p-6 sm:p-8 lg:col-span-6 lg:p-10">
-              {/* Header Info */}
+            {/* Right Column — Compact Name & Small Details */}
+            <div className="flex flex-col justify-between p-3.5 sm:p-5 md:col-span-6 md:p-6">
               <div>
+                {/* Builder & Verified Tag */}
                 <div className="flex items-center justify-between gap-2">
-                  <span className="inline-flex items-center gap-1.5 text-xs font-bold uppercase tracking-[0.2em] text-[#B8962E]">
-                    <Building2 size={14} /> {p.builder || "Touchstone Properties"}
+                  <span className="inline-flex items-center gap-1 text-[10px] sm:text-[11px] font-bold uppercase tracking-[0.14em] text-[#B8962E] truncate">
+                    <Building2 size={12} className="shrink-0" />
+                    <span className="truncate">{p.builder || "Touchstone Properties"}</span>
                   </span>
-                  <span className="rounded-md bg-emerald-50 px-2.5 py-1 text-[11px] font-bold text-emerald-700 border border-emerald-200/60">
-                    {p.possession || "Ready to Move"}
+                  <span className="inline-flex items-center gap-1 text-[10px] font-semibold text-emerald-700 shrink-0">
+                    <ShieldCheck size={12} className="text-emerald-600" /> RERA
                   </span>
                 </div>
 
-                <h3 className="mt-2 font-display text-2xl sm:text-3xl lg:text-4xl font-bold text-slate-900 leading-snug">
+                {/* Property Name */}
+                <h3 className="mt-1 font-display text-lg sm:text-2xl font-bold text-slate-900 leading-snug line-clamp-1">
                   {title}
                 </h3>
 
-                <div className="mt-2 flex items-center gap-1.5 text-xs sm:text-sm text-slate-600">
-                  <MapPin size={16} className="shrink-0 text-[#B8962E]" />
-                  <span className="font-medium truncate">{location}</span>
+                {/* Location */}
+                <div className="mt-1 flex items-center gap-1 text-xs text-slate-500">
+                  <MapPin size={13} className="shrink-0 text-[#B8962E]" />
+                  <span className="truncate">{location}</span>
                 </div>
 
-                {/* Price Display Banner */}
-                <div className="mt-5 flex flex-wrap items-baseline gap-3 rounded-2xl bg-gradient-to-r from-[#FAF6ED] to-[#F5EFE0] p-4 border border-[#EBE1C7]">
+                {/* Price + Small Key Details Row */}
+                <div className="mt-3 flex flex-wrap items-center justify-between gap-2 rounded-xl bg-[#FAF6ED] px-3 py-2.5 border border-[#EBE1C7]">
                   <div>
-                    <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500">Starting Price</span>
-                    <div className="font-numeric text-2xl sm:text-3xl font-extrabold text-slate-900">
+                    <span className="block text-[9px] font-bold uppercase tracking-wider text-slate-400 leading-none">
+                      Starting Price
+                    </span>
+                    <span className="font-numeric text-base sm:text-xl font-extrabold text-slate-900">
                       {price}
-                    </div>
-                  </div>
-                  <span className="ml-auto text-xs font-semibold text-[#B8962E] bg-white/80 px-3 py-1 rounded-full border border-[#EBE1C7] shadow-2xs">
-                    ✦ Zero Floor Rise Fee
-                  </span>
-                </div>
-
-                {/* Property Specs Pill Grid */}
-                <div className="mt-5 grid grid-cols-3 gap-3 rounded-2xl bg-slate-50 p-3.5 border border-slate-200/80">
-                  <div className="text-center">
-                    <div className="flex items-center justify-center text-[#B8962E]">
-                      <Bed size={18} />
-                    </div>
-                    <div className="mt-1 font-numeric text-sm sm:text-base font-bold text-slate-900">
-                      {bedrooms ? `${bedrooms} BHK` : "—"}
-                    </div>
-                    <div className="text-[10px] font-semibold uppercase tracking-wider text-slate-400">Bedrooms</div>
+                    </span>
                   </div>
 
-                  <div className="text-center border-x border-slate-200">
-                    <div className="flex items-center justify-center text-[#B8962E]">
-                      <Bath size={18} />
-                    </div>
-                    <div className="mt-1 font-numeric text-sm sm:text-base font-bold text-slate-900">
-                      {bathrooms ? `${bathrooms}` : "—"}
-                    </div>
-                    <div className="text-[10px] font-semibold uppercase tracking-wider text-slate-400">Bathrooms</div>
-                  </div>
-
-                  <div className="text-center">
-                    <div className="flex items-center justify-center text-[#B8962E]">
-                      <Maximize size={18} />
-                    </div>
-                    <div className="mt-1 font-numeric text-sm sm:text-base font-bold text-slate-900">
-                      {area}
-                    </div>
-                    <div className="text-[10px] font-semibold uppercase tracking-wider text-slate-400">Carpet Area</div>
-                  </div>
-                </div>
-
-                {/* Description */}
-                <p className="mt-4 text-xs sm:text-sm leading-relaxed text-slate-600 line-clamp-3">
-                  {description}
-                </p>
-
-                {/* Highlights Grid */}
-                <div className="mt-5">
-                  <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400">
-                    Project Highlights
-                  </span>
-                  <div className="mt-2 grid grid-cols-2 gap-2">
-                    {highlights.map((h, i) => (
-                      <div key={i} className="flex items-center gap-2 text-xs font-semibold text-slate-700">
-                        <span className="grid h-4 w-4 shrink-0 place-items-center rounded-full bg-[#B8962E]/15 text-[#B8962E]">
-                          <Check size={11} strokeWidth={3} />
-                        </span>
-                        <span className="truncate">{h}</span>
-                      </div>
-                    ))}
+                  {/* Compact Spec Pills */}
+                  <div className="flex items-center gap-1.5 sm:gap-2 text-[11px] sm:text-xs font-bold text-slate-700">
+                    {bedrooms ? (
+                      <span className="inline-flex items-center gap-1 rounded-lg bg-white px-2 py-1 border border-slate-200/80 shadow-2xs">
+                        <Bed size={13} className="text-[#B8962E]" /> {bedrooms} BHK
+                      </span>
+                    ) : null}
+                    {bathrooms ? (
+                      <span className="inline-flex items-center gap-1 rounded-lg bg-white px-2 py-1 border border-slate-200/80 shadow-2xs">
+                        <Bath size={13} className="text-[#B8962E]" /> {bathrooms}
+                      </span>
+                    ) : null}
+                    <span className="inline-flex items-center gap-1 rounded-lg bg-white px-2 py-1 border border-slate-200/80 shadow-2xs">
+                      <Maximize size={12} className="text-[#B8962E]" /> {area}
+                    </span>
                   </div>
                 </div>
               </div>
 
-              {/* Action Buttons Row */}
-              <div className="mt-8 flex flex-wrap items-center gap-2.5 pt-4 border-t border-slate-100">
+              {/* Compact Single-Row Action Bar */}
+              <div className="mt-3.5 sm:mt-4 flex items-center gap-1.5 sm:gap-2 pt-3 border-t border-slate-100">
                 <Link
                   to="/property/$slug"
                   params={{ slug: p.slug }}
-                  className="inline-flex flex-1 items-center justify-center gap-1.5 rounded-full bg-slate-900 px-5 py-3 text-xs sm:text-sm font-bold text-white transition-all hover:bg-[#B8962E] shadow-sm hover:shadow-md"
+                  className="inline-flex flex-1 items-center justify-center gap-1 rounded-full bg-slate-900 px-3 py-2 sm:px-4 sm:py-2.5 text-xs font-bold text-white transition-all hover:bg-[#B8962E]"
                 >
-                  View Details <ArrowRight size={15} />
+                  View Details <ArrowRight size={13} />
                 </Link>
 
                 <button
@@ -304,9 +251,9 @@ function HotPropertyCard({ p, settings }: { p: Property; settings?: HotPropertyS
                       assignedStaffId: (p as any).assignedStaffId ?? null,
                     })
                   }
-                  className="inline-flex items-center justify-center gap-1.5 rounded-full bg-[#B8962E] px-5 py-3 text-xs sm:text-sm font-bold text-white transition-all hover:bg-amber-600 shadow-xs"
+                  className="inline-flex flex-1 items-center justify-center gap-1 rounded-full bg-[#B8962E] px-3 py-2 sm:px-4 sm:py-2.5 text-xs font-bold text-white transition-all hover:bg-amber-600"
                 >
-                  <Send size={15} /> Enquire Now
+                  <Send size={12} /> Enquire
                 </button>
 
                 <a
@@ -314,14 +261,14 @@ function HotPropertyCard({ p, settings }: { p: Property; settings?: HotPropertyS
                   target="_blank"
                   rel="noopener noreferrer"
                   aria-label="Contact on WhatsApp"
-                  className="grid h-11 w-11 shrink-0 place-items-center rounded-full border border-slate-300 text-slate-700 transition hover:bg-emerald-500 hover:text-white hover:border-emerald-500"
+                  className="grid h-8 w-8 sm:h-9 sm:w-9 shrink-0 place-items-center rounded-full border border-slate-200 text-slate-700 transition hover:bg-emerald-500 hover:text-white hover:border-emerald-500"
                 >
-                  <Phone size={16} />
+                  <Phone size={14} />
                 </a>
 
                 <ShareButton
                   property={{ title, slug: p.slug, location, price, image: activeImg }}
-                  className="h-11 w-11"
+                  className="h-8 w-8 sm:h-9 sm:w-9 shrink-0"
                 />
               </div>
             </div>

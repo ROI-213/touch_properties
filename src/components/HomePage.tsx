@@ -27,7 +27,7 @@ function FeaturedFallback() {
           </h2>
           <p className="mt-2 text-base text-charcoal/60">Premium &amp; Verified Listings</p>
         </div>
-        <div className="mt-10 grid grid-cols-2 gap-3 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+        <div className="mt-10 grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
           {list.map((p, i) => (
             <PropertyCard key={p.id} p={p} index={i} />
           ))}

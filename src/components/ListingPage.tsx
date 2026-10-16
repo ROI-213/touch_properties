@@ -271,7 +271,7 @@ export function ListingPage({ listingType, type, initialQuery = "" }: Props) {
 
       {/* Header */}
       <header
-        className="relative flex h-[380px] items-end overflow-hidden px-6 pb-12 pt-32 text-ivory"
+        className="relative flex h-[280px] sm:h-[380px] items-end overflow-hidden pb-8 pt-24 sm:pb-12 sm:pt-32 text-ivory"
         style={{
           backgroundImage:
             `url(${siteImages.hero.buy})`,
@@ -281,17 +281,17 @@ export function ListingPage({ listingType, type, initialQuery = "" }: Props) {
       >
         <div className="absolute inset-0 bg-[rgba(28,28,30,0.72)] backdrop-blur-[2px]" />
         <div className="relative z-10 mx-auto w-full px-4 md:px-8">
-          <nav className="text-[13px] tracking-[1.5px] text-gold">
+          <nav className="text-[11px] sm:text-[13px] tracking-[1.5px] text-gold">
             <Link to="/" className="hover:underline">HOME</Link>
             <span className="mx-2 opacity-60">{">"}</span>
             <span>{listingType === "BUY" ? "BUY" : "RENT"}</span>
             <span className="mx-2 opacity-60">{">"}</span>
             <span>{cap(type).toUpperCase()}</span>
           </nav>
-          <h1 className="mt-3 font-display text-4xl font-bold leading-tight md:text-[52px]">
+          <h1 className="mt-2.5 sm:mt-3 font-display text-[28px] sm:text-4xl font-bold leading-tight md:text-[52px]">
             {heroTitle}
           </h1>
-          <p className="mt-2 text-[16px] text-white/75">
+          <p className="mt-1.5 sm:mt-2 text-sm sm:text-[16px] text-white/75">
             Showing{" "}
             <span className="font-numeric text-gold">
               {filtered.length.toLocaleString("en-IN")}
@@ -301,18 +301,7 @@ export function ListingPage({ listingType, type, initialQuery = "" }: Props) {
         </div>
       </header>
 
-      {/* Mobile filter toggle */}
-      <div className="sticky top-[64px] z-30 border-b border-charcoal/10 bg-ivory/95 px-4 py-3 backdrop-blur lg:hidden">
-        <button
-          onClick={() => setMobileFiltersOpen(true)}
-          className="inline-flex items-center gap-2 rounded-full bg-charcoal px-4 py-2 text-sm font-medium text-ivory"
-        >
-          <SlidersHorizontal size={16} />
-          Filters{activeChips.length ? ` (${activeChips.length} applied)` : ""}
-        </button>
-      </div>
-
-      <div className="mx-auto grid w-full grid-cols-1 gap-8 px-4 py-10 lg:grid-cols-[280px_1fr] xl:grid-cols-[300px_1fr] md:px-8">
+      <div className="mx-auto grid w-full grid-cols-1 gap-6 sm:gap-8 px-4 py-6 sm:py-10 lg:grid-cols-[280px_1fr] xl:grid-cols-[300px_1fr] md:px-8">
         {/* Desktop sidebar */}
         <aside className="hidden lg:block">
           <div className="sticky top-24 max-h-[calc(100vh-7rem)] overflow-y-auto pr-2">
@@ -324,18 +313,18 @@ export function ListingPage({ listingType, type, initialQuery = "" }: Props) {
         <section>
           {/* Sort bar */}
           <div className="mb-5 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-            <p className="text-[15px] text-charcoal">
+            <p className="hidden sm:block text-[15px] text-charcoal">
               <span className="font-semibold">
                 {filtered.length.toLocaleString("en-IN")}
               </span>{" "}
               Properties Found
             </p>
-            <div className="flex items-center gap-3">
-              <div className="relative">
+            <div className="flex flex-wrap items-center justify-between sm:justify-end gap-2 sm:gap-3">
+              <div className="relative flex-1 sm:flex-initial min-w-[160px]">
                 <select
                   value={sort}
                   onChange={(e) => setSort(e.target.value)}
-                  className="appearance-none rounded-full border border-charcoal/15 bg-card py-2 pl-4 pr-9 text-sm text-charcoal focus:border-gold focus:outline-none"
+                  className="w-full appearance-none rounded-full border border-charcoal/15 bg-card py-2 pl-3.5 pr-8 text-xs sm:text-sm text-charcoal focus:border-gold focus:outline-none"
                 >
                   <option value="newest">Sort: Newest First</option>
                   <option value="price-asc">Price: Low to High</option>
@@ -348,34 +337,36 @@ export function ListingPage({ listingType, type, initialQuery = "" }: Props) {
                   className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-charcoal/60"
                 />
               </div>
-              <div className="flex overflow-hidden rounded-full border border-charcoal/15">
+              <div className="flex items-center gap-2">
+                <div className="flex overflow-hidden rounded-full border border-charcoal/15">
+                  <button
+                    onClick={() => setView("grid")}
+                    aria-label="Grid view"
+                    className={`grid h-9 w-9 place-items-center ${
+                      view === "grid" ? "bg-gold text-white" : "bg-card text-charcoal/60"
+                    }`}
+                  >
+                    <Grid3x3 size={16} />
+                  </button>
+                  <button
+                    onClick={() => setView("list")}
+                    aria-label="List view"
+                    className={`grid h-9 w-9 place-items-center ${
+                      view === "list" ? "bg-gold text-white" : "bg-card text-charcoal/60"
+                    }`}
+                  >
+                    <List size={16} />
+                  </button>
+                </div>
                 <button
-                  onClick={() => setView("grid")}
-                  aria-label="Grid view"
-                  className={`grid h-9 w-9 place-items-center ${
-                    view === "grid" ? "bg-gold text-white" : "bg-card text-charcoal/60"
-                  }`}
+                  onClick={() => setShareOpen(true)}
+                  className="group inline-flex items-center gap-1.5 rounded-full border border-[#21396F]/20 bg-white px-3.5 py-2 text-xs sm:text-sm font-semibold text-[#21396F] shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:border-[#C8A34D] hover:bg-gradient-to-r hover:from-[#C8A34D] hover:to-[#b8923f] hover:text-white hover:shadow-md"
+                  aria-label="Share properties"
                 >
-                  <Grid3x3 size={16} />
-                </button>
-                <button
-                  onClick={() => setView("list")}
-                  aria-label="List view"
-                  className={`grid h-9 w-9 place-items-center ${
-                    view === "list" ? "bg-gold text-white" : "bg-card text-charcoal/60"
-                  }`}
-                >
-                  <List size={16} />
+                  <Share2 size={14} className="transition-transform group-hover:rotate-12" />
+                  Share
                 </button>
               </div>
-              <button
-                onClick={() => setShareOpen(true)}
-                className="group inline-flex items-center gap-1.5 rounded-full border border-[#21396F]/20 bg-white px-4 py-2 text-sm font-semibold text-[#21396F] shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:border-[#C8A34D] hover:bg-gradient-to-r hover:from-[#C8A34D] hover:to-[#b8923f] hover:text-white hover:shadow-md"
-                aria-label="Share properties"
-              >
-                <Share2 size={14} className="transition-transform group-hover:rotate-12" />
-                Share
-              </button>
             </div>
           </div>
 
@@ -406,7 +397,7 @@ export function ListingPage({ listingType, type, initialQuery = "" }: Props) {
             <div
               className={
                 view === "grid"
-                  ? "grid grid-cols-2 gap-3 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 3xl:grid-cols-6"
+                  ? "grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 3xl:grid-cols-6"
                   : "flex flex-col gap-5"
               }
             >
@@ -426,7 +417,7 @@ export function ListingPage({ listingType, type, initialQuery = "" }: Props) {
                 transition={{ duration: 0.25 }}
                 className={
                   view === "grid"
-                    ? "grid grid-cols-2 gap-3 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 3xl:grid-cols-6"
+                    ? "grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 3xl:grid-cols-6"
                     : "flex flex-col gap-5"
                 }
               >
@@ -465,14 +456,14 @@ export function ListingPage({ listingType, type, initialQuery = "" }: Props) {
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               onClick={() => setMobileFiltersOpen(false)}
-              className="fixed inset-0 z-40 bg-black/50 lg:hidden"
+              className="fixed inset-0 z-[80] bg-black/55 backdrop-blur-[1px] lg:hidden"
             />
             <motion.div
               initial={{ y: "100%" }}
               animate={{ y: 0 }}
               exit={{ y: "100%" }}
               transition={{ type: "spring", damping: 30, stiffness: 280 }}
-              className="fixed inset-x-0 bottom-0 z-50 h-[90vh] overflow-y-auto rounded-t-3xl bg-ivory p-5 lg:hidden"
+              className="fixed inset-x-0 bottom-0 z-[90] max-h-[88vh] overflow-y-auto rounded-t-3xl bg-ivory p-5 pb-8 shadow-2xl lg:hidden"
             >
               <div className="mb-4 flex items-center justify-between">
                 <h2 className="font-display text-2xl font-semibold">Refine Search</h2>
@@ -486,7 +477,7 @@ export function ListingPage({ listingType, type, initialQuery = "" }: Props) {
               {filterPanel}
               <button
                 onClick={() => setMobileFiltersOpen(false)}
-                className="mt-5 h-12 w-full rounded-full bg-gradient-to-r from-gold to-gold-light text-sm font-semibold text-white"
+                className="mt-5 h-12 w-full rounded-full bg-gradient-to-r from-gold to-gold-light text-sm font-semibold text-white shadow-gold"
               >
                 Apply Filters
               </button>

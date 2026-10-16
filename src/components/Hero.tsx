@@ -255,10 +255,10 @@ function HeroSearchBar() {
   const showEmpty = open && q.trim().length >= 2 && suggestions.length === 0;
 
   return (
-    <div ref={wrapRef} className="relative mt-7 w-full max-w-[560px]">
+    <div ref={wrapRef} className="relative mt-4 md:mt-7 w-full max-w-[560px]">
       <form
         onSubmit={submit}
-        className="flex w-full items-center gap-2 rounded-full bg-white p-1.5 pl-5 shadow-[0_14px_40px_rgba(0,0,0,0.18)]"
+        className="flex w-full items-center gap-2 rounded-full bg-white p-1.5 pl-4 sm:pl-5 shadow-[0_14px_40px_rgba(0,0,0,0.18)]"
       >
         <Search size={16} className="shrink-0 text-charcoal/50" />
         <input
@@ -272,7 +272,7 @@ function HeroSearchBar() {
           onKeyDown={onKey}
           placeholder={filters.keyword_placeholder ?? SEARCH_FILTERS_DEFAULTS.keyword_placeholder}
           autoComplete="off"
-          className="min-w-0 flex-1 bg-transparent py-2 text-[14px] text-charcoal outline-none placeholder:text-charcoal/45"
+          className="min-w-0 flex-1 bg-transparent py-2 text-[13.5px] sm:text-[14px] text-charcoal outline-none placeholder:text-charcoal/45"
           style={{ fontFamily: "'Manrope', sans-serif" }}
         />
         <button
@@ -285,21 +285,27 @@ function HeroSearchBar() {
         <button
           type="submit"
           aria-label="Search"
-          className="grid h-10 w-10 shrink-0 place-items-center rounded-full text-white shadow-md sm:hidden"
+          className="grid h-9 w-9 shrink-0 place-items-center rounded-full text-white shadow-md sm:hidden"
           style={{ background: "#0E2A47" }}
         >
-          <Search size={16} />
+          <Search size={15} />
         </button>
       </form>
 
       {(open && (suggestions.length > 0 || showEmpty)) && typeof document !== "undefined" && rect && createPortal(
         <div
           ref={dropdownRef}
-          style={{ position: "fixed", left: rect.left, top: rect.top, width: rect.width, zIndex: 1000 }}
+          style={{
+            position: "fixed",
+            left: Math.max(8, rect.left),
+            top: rect.top,
+            width: typeof window !== "undefined" ? Math.min(rect.width, window.innerWidth - 16) : rect.width,
+            zIndex: 1000,
+          }}
           className="overflow-hidden rounded-2xl border border-black/5 bg-white text-charcoal shadow-[0_20px_60px_rgba(0,0,0,0.25)]"
         >
           {suggestions.length > 0 ? (
-            <ul className="max-h-[360px] overflow-auto py-1">
+            <ul className="max-h-[320px] sm:max-h-[360px] overflow-auto py-1">
               {suggestions.map((p, i) => (
                 <li key={p.id}>
                   <button
@@ -350,16 +356,16 @@ function HeroActionPills() {
     { icon: Tag, label: "Sell Your Property", to: "/sell-property" as const, params: undefined },
   ];
   return (
-    <div className="mt-6 flex flex-wrap gap-2">
+    <div className="mt-0 md:mt-6 flex flex-wrap gap-1.5 sm:gap-2">
       {pills.map((p) => (
         <Link
           key={p.label}
           to={p.to}
           params={p.params as never}
-          className="inline-flex items-center gap-2 rounded-full border border-white/25 bg-white/10 px-4 py-2 text-[12.5px] font-medium text-white backdrop-blur-md transition hover:border-gold/70 hover:bg-white/20"
+          className="inline-flex items-center gap-1.5 sm:gap-2 rounded-full border border-white/25 bg-white/10 px-3 py-1.5 text-[11.5px] sm:px-4 sm:py-2 sm:text-[12.5px] font-medium text-white backdrop-blur-md transition hover:border-gold/70 hover:bg-white/20"
           style={{ fontFamily: "'Manrope', sans-serif" }}
         >
-          <p.icon size={14} className="text-gold" />
+          <p.icon size={13} className="shrink-0 text-gold sm:h-3.5 sm:w-3.5" />
           {p.label}
         </Link>
       ))}
@@ -402,9 +408,9 @@ function HeroDots({
 
 function HeroNavigationArrows({ onPrev, onNext }: { onPrev: () => void; onNext: () => void }) {
   const cls =
-    "grid h-12 w-12 place-items-center rounded-full border border-white/70 bg-transparent text-white shadow-[0_8px_24px_rgba(0,0,0,0.45)] transition-all duration-300 active:scale-95";
+    "grid h-10 w-10 sm:h-11 sm:w-11 place-items-center rounded-full border border-white/60 bg-black/25 text-white backdrop-blur-sm shadow-[0_8px_24px_rgba(0,0,0,0.45)] transition-all duration-300 active:scale-95";
   return (
-    <div className="flex items-center gap-2">
+    <div className="flex items-center gap-2.5">
       <button onClick={onPrev} aria-label="Previous slide" className={cls}>
         <ChevronLeft size={18} />
       </button>
@@ -502,7 +508,7 @@ function HeroCarousel() {
 
   return (
     <div
-      className="relative h-[500px] w-full overflow-hidden rounded-[28px] shadow-[0_24px_80px_rgba(0,0,0,0.18)] sm:h-[560px] md:h-[600px] md:rounded-[36px]"
+      className="relative h-[500px] sm:h-[560px] md:h-[600px] w-full overflow-hidden rounded-[24px] sm:rounded-[28px] md:rounded-[36px] shadow-[0_24px_80px_rgba(0,0,0,0.18)] flex flex-col justify-center [overflow-anchor:none]"
       onMouseEnter={() => setPaused(true)}
       onMouseLeave={() => setPaused(false)}
       onTouchStart={(e) => (touchStart.current = e.touches[0].clientX)}
@@ -528,8 +534,8 @@ function HeroCarousel() {
       </AnimatePresence>
 
       {/* content */}
-      <div className="relative z-10 flex h-full items-center">
-        <div className="w-full px-6 md:pl-14 md:pr-10 lg:pl-20">
+      <div className="relative z-10 flex h-full items-center pt-7 pb-20 sm:py-10 md:py-0">
+        <div className="w-full px-4 sm:px-6 md:pl-14 md:pr-10 lg:pl-20">
           <AnimatePresence mode="wait">
             <motion.div
               key={idx}
@@ -548,7 +554,7 @@ function HeroCarousel() {
                     hidden: { opacity: 0, y: 16 },
                     show: { opacity: 1, y: 0, transition: { duration: 0.6 } },
                   }}
-                  className="hidden md:inline-flex items-center gap-2 rounded-full border border-gold/60 bg-white/5 px-3 py-1.5 text-[11px] font-semibold tracking-[3px] text-gold backdrop-blur"
+                  className="inline-flex items-center gap-1.5 rounded-full border border-gold/60 bg-white/5 px-2.5 py-1 text-[10px] md:px-3 md:py-1.5 md:text-[11px] font-semibold tracking-[2.5px] md:tracking-[3px] text-gold backdrop-blur"
                   style={{ fontFamily: "'Manrope', sans-serif" }}
                 >
                   ✦ {slide.eyebrow}
@@ -560,7 +566,7 @@ function HeroCarousel() {
                   hidden: { opacity: 0, y: 24 },
                   show: { opacity: 1, y: 0, transition: { duration: 0.7 } },
                 }}
-                className="mt-5 text-[32px] font-bold leading-[1.08] text-white md:text-[46px]"
+                className="mt-3 md:mt-5 text-[28px] sm:text-[36px] font-bold leading-[1.12] text-white md:text-[46px] md:leading-[1.08]"
                 style={{ fontFamily: "'Playfair Display', serif" }}
               >
                 {slide.titleHead}
@@ -575,7 +581,7 @@ function HeroCarousel() {
                   hidden: { opacity: 0, y: 16 },
                   show: { opacity: 1, y: 0, transition: { duration: 0.6 } },
                 }}
-                className="mt-4 max-w-[560px] text-[14px] leading-relaxed text-white/85 md:text-[15px]"
+                className="mt-2.5 md:mt-4 max-w-[560px] text-[13px] sm:text-[14px] leading-relaxed text-white/85 md:text-[15px]"
                 style={{ fontFamily: "'Manrope', sans-serif" }}
               >
                 {slide.subtitle}
@@ -587,7 +593,7 @@ function HeroCarousel() {
                   hidden: { opacity: 0, y: 16 },
                   show: { opacity: 1, y: 0, transition: { duration: 0.6 } },
                 }}
-                className="mt-7 md:hidden"
+                className="mt-4 md:hidden"
               >
                 <HeroActionPills />
               </motion.div>
@@ -641,8 +647,8 @@ function HeroCarousel() {
         </div>
       </div>
 
-      {/* bottom-right control row (mobile arrows only; desktop dots) */}
-      <div className="absolute bottom-5 left-1/2 z-30 flex -translate-x-1/2 items-center gap-4 rounded-full bg-transparent px-4 py-2.5 md:bottom-6 md:left-auto md:right-8 md:z-10 md:translate-x-0 md:bg-black/25 md:shadow-lg">
+      {/* bottom-right control row (mobile arrows + dots; desktop dots) */}
+      <div className="absolute bottom-3.5 left-1/2 z-30 flex -translate-x-1/2 items-center gap-3 rounded-full bg-transparent px-4 py-1.5 md:bottom-6 md:left-auto md:right-8 md:z-10 md:translate-x-0 md:bg-black/25 md:py-2.5 md:shadow-lg">
         <div className="md:hidden">
           <HeroNavigationArrows onPrev={prev} onNext={next} />
         </div>

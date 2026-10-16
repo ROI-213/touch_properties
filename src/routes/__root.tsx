@@ -8,13 +8,11 @@ import {
   HeadContent,
   Scripts,
 } from "@tanstack/react-router";
-import { useEffect, type ReactNode } from "react";
+import { useEffect, useRef, type ReactNode } from "react";
 import { Toaster } from "react-hot-toast";
 
 import appCss from "../styles.css?url";
 import brandIcon from "../assets/brand/icon.png?url";
-
-import { getBrandSettings } from "@/lib/site-cms";
 
 import { WhatsAppButton } from "../components/WhatsAppButton";
 import { AuthProvider } from "@/contexts/AuthContext";
@@ -154,32 +152,7 @@ function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
   );
 }
 
-import { getPublicPropertiesFn } from "@/lib/properties.functions";
-
 export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()({
-  loader: async ({ context }) => {
-    // Prefetch brand settings & public properties during SSR so the navbar logo/name,
-    // footer, and property sections render with real data in the initial HTML (instead
-    // of popping in after a client-side round trip). Capped with a timeout so a slow DB
-    // can never block the page render.
-    const { queryClient } = context;
-    await Promise.race([
-      Promise.all([
-        queryClient.prefetchQuery({
-          queryKey: ["site-brand"],
-          queryFn: getBrandSettings,
-          staleTime: 30_000,
-        }),
-        queryClient.prefetchQuery({
-          queryKey: ["public-properties"],
-          queryFn: () => getPublicPropertiesFn(),
-          staleTime: 60_000,
-        }),
-      ]),
-      new Promise((resolve) => setTimeout(resolve, 3000)),
-    ]);
-  },
-
   head: () => ({
     meta: [
       { charSet: "utf-8" },
@@ -237,10 +210,16 @@ function RootComponent() {
   const { queryClient } = Route.useRouteContext();
   const router = useRouter();
   const location = useRouterState({ select: (state) => state.location });
+  const prevPathnameRef = useRef<string | null>(null);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
     window.sessionStorage.removeItem(`root-error-retry:${location.pathname}${location.searchStr}`);
+
+    if (prevPathnameRef.current !== null && prevPathnameRef.current !== location.pathname) {
+      window.scrollTo({ top: 0, left: 0, behavior: "instant" });
+    }
+    prevPathnameRef.current = location.pathname;
   }, [location.pathname, location.searchStr]);
 
   return (

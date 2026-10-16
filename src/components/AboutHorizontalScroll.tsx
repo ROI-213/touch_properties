@@ -225,25 +225,25 @@ function StatsPanel() {
   const { content } = useAboutContent();
   const stats = content.stats;
   return (
-    <div className="w-full flex items-center px-8 lg:px-24">
-      <div className="w-full mx-auto w-full">
-        <div className="text-center mb-14">
+    <div className="w-full flex items-center px-4 sm:px-8 lg:px-24">
+      <div className="w-full mx-auto">
+        <div className="text-center mb-8 sm:mb-14">
           <span className="text-xs tracking-[0.4em] text-[#c9a961] font-medium">— BY THE NUMBERS</span>
-          <h2 className="font-serif text-4xl md:text-6xl font-bold text-[#0a1f44] mt-3">
+          <h2 className="font-serif text-3xl sm:text-4xl md:text-6xl font-bold text-[#0a1f44] mt-2 sm:mt-3">
             A Decade of <span className="italic text-[#c9a961]">Trust</span>
           </h2>
         </div>
         {/* Mobile: continuous marquee */}
-        <div className="md:hidden relative overflow-hidden -mx-8">
-          <div className="pointer-events-none absolute inset-y-0 left-0 z-10 w-10 bg-gradient-to-r from-[#faf6ee] to-transparent" />
-          <div className="pointer-events-none absolute inset-y-0 right-0 z-10 w-10 bg-gradient-to-l from-[#faf6ee] to-transparent" />
-          <div className="flex w-max" style={{ animation: "stats-marquee 30s linear infinite" }}>
+        <div className="md:hidden relative overflow-hidden -mx-4 sm:-mx-8">
+          <div className="pointer-events-none absolute inset-y-0 left-0 z-10 w-8 sm:w-10 bg-gradient-to-r from-[#faf6ee] to-transparent" />
+          <div className="pointer-events-none absolute inset-y-0 right-0 z-10 w-8 sm:w-10 bg-gradient-to-l from-[#faf6ee] to-transparent" />
+          <div className="flex w-max py-2" style={{ animation: "stats-marquee 30s linear infinite" }}>
             {[...stats, ...stats].map((s, i) => (
               <div
                 key={`${s.label}-${i}`}
-                className="mx-3 w-[160px] shrink-0 rounded-3xl bg-gradient-to-br from-white to-[#faf6ee] border border-[#c9a961]/20 p-6 text-center shadow-[0_20px_60px_-30px_rgba(15,23,42,0.3)]"
+                className="mx-2.5 w-[150px] sm:w-[160px] shrink-0 rounded-2xl sm:rounded-3xl bg-gradient-to-br from-white to-[#faf6ee] border border-[#c9a961]/20 p-5 sm:p-6 text-center shadow-[0_20px_60px_-30px_rgba(15,23,42,0.3)]"
               >
-                <div className="font-serif text-4xl font-bold bg-gradient-to-br from-[#0a1f44] to-[#c9a961] bg-clip-text text-transparent mb-2">
+                <div className="font-serif text-3xl sm:text-4xl font-bold bg-gradient-to-br from-[#0a1f44] to-[#c9a961] bg-clip-text text-transparent mb-1.5">
                   {s.value}{s.suffix}
                 </div>
                 <div className="text-xs text-slate-600 font-medium">{s.label}</div>
@@ -323,7 +323,7 @@ function JourneyPanel() {
   return (
     <div className="w-full flex items-center px-4 sm:px-8 lg:px-24">
       <div className="w-full mx-auto">
-        <div className="text-center mb-8 sm:mb-10">
+        <div className="text-center mb-6 sm:mb-10">
           <span className="text-xs tracking-[0.4em] text-[#c9a961] font-medium">— YOUR JOURNEY</span>
           <h2 className="font-serif text-3xl sm:text-4xl md:text-6xl font-bold text-[#0a1f44] mt-2">
             Buy. Sell. <span className="italic text-[#c9a961]">Rent.</span>
@@ -331,7 +331,7 @@ function JourneyPanel() {
         </div>
 
         <div
-          className="relative"
+          className="relative [overflow-anchor:none]"
           onMouseEnter={() => setPaused(true)}
           onMouseLeave={() => setPaused(false)}
           onTouchStart={() => setPaused(true)}
@@ -354,16 +354,16 @@ function JourneyPanel() {
                   viewport={{ once: true }}
                   transition={{ duration: 0.6, delay: i * 0.15 }}
                   whileHover={{ y: -10 }}
-                  className="w-[85vw] sm:w-[70vw] md:w-auto shrink-0 snap-center rounded-3xl overflow-hidden bg-white shadow-[0_20px_60px_-30px_rgba(15,23,42,0.35)] border border-slate-100 flex flex-col justify-between"
+                  className="w-[82vw] sm:w-[70vw] md:w-auto shrink-0 snap-center rounded-3xl overflow-hidden bg-white shadow-[0_20px_60px_-30px_rgba(15,23,42,0.35)] border border-slate-100 flex flex-col justify-between"
                 >
-                  <div className={`h-40 bg-gradient-to-br ${color} flex items-center justify-center relative`}>
-                    <Icon className="w-16 h-16 text-white/95" strokeWidth={1.2} />
+                  <div className={`h-36 sm:h-40 bg-gradient-to-br ${color} flex items-center justify-center relative`}>
+                    <Icon className="w-14 h-14 sm:w-16 sm:h-16 text-white/95" strokeWidth={1.2} />
                     <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_30%,rgba(255,255,255,0.2),transparent_60%)]" />
                   </div>
-                  <div className="p-6 sm:p-7 flex flex-col justify-between flex-1">
+                  <div className="p-5 sm:p-7 flex flex-col justify-between flex-1">
                     <div>
-                      <h3 className="font-serif text-2xl sm:text-3xl font-bold text-[#0a1f44] mb-3 tracking-wide">{j.title}</h3>
-                      <p className="text-sm text-slate-600 leading-relaxed mb-5">{j.desc}</p>
+                      <h3 className="font-serif text-xl sm:text-3xl font-bold text-[#0a1f44] mb-2 sm:mb-3 tracking-wide">{j.title}</h3>
+                      <p className="text-xs sm:text-sm text-slate-600 leading-relaxed mb-4 sm:mb-5">{j.desc}</p>
                     </div>
                     <Link {...(journeyLink(j.title) as any)} className="text-sm font-semibold text-[#c9a961] inline-flex items-center gap-1 group">
                       Get Started <ArrowRight className="w-3.5 h-3.5 transition-transform group-hover:translate-x-1" />
@@ -379,14 +379,14 @@ function JourneyPanel() {
             <button
               onClick={() => scrollToSlide(activeTab - 1)}
               aria-label="Previous card"
-              className="absolute -left-1 top-1/2 z-10 grid h-8 w-8 -translate-y-1/2 place-items-center rounded-full bg-white/90 text-[#0a1f44] shadow-md border border-slate-200"
+              className="absolute left-1 top-1/2 z-10 grid h-8 w-8 -translate-y-1/2 place-items-center rounded-full bg-white/95 text-[#0a1f44] shadow-md border border-slate-200"
             >
               <ChevronLeft size={16} />
             </button>
             <button
               onClick={() => scrollToSlide(activeTab + 1)}
               aria-label="Next card"
-              className="absolute -right-1 top-1/2 z-10 grid h-8 w-8 -translate-y-1/2 place-items-center rounded-full bg-white/90 text-[#0a1f44] shadow-md border border-slate-200"
+              className="absolute right-1 top-1/2 z-10 grid h-8 w-8 -translate-y-1/2 place-items-center rounded-full bg-white/95 text-[#0a1f44] shadow-md border border-slate-200"
             >
               <ChevronRight size={16} />
             </button>

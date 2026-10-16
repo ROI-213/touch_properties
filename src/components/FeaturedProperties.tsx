@@ -56,19 +56,19 @@ function FeaturedProjectCard({ p }: { p: Property }) {
       </div>
 
       {/* Middle Details */}
-      <div className="flex flex-1 flex-col justify-center min-w-0">
+      <div className="flex w-full flex-1 flex-col justify-center min-w-0">
         {/* Builder Name */}
-        <div className="text-[11px] font-bold uppercase tracking-wider text-[#B8962E]">
+        <div className="text-[11px] font-bold uppercase tracking-wider text-[#B8962E] truncate">
           {p.builder || "Touchstone Properties"}
         </div>
 
         {/* Title */}
-        <h3 className="mt-0.5 font-display text-base sm:text-lg font-bold text-slate-900 leading-snug truncate">
+        <h3 className="mt-0.5 font-display text-base sm:text-lg font-bold text-slate-900 leading-snug line-clamp-1 sm:truncate">
           {p.title}
         </h3>
 
         {/* Location */}
-        <div className="mt-1 flex items-center gap-1 text-xs text-slate-500 truncate">
+        <div className="mt-1 flex items-center gap-1 text-xs text-slate-500 min-w-0">
           <MapPin size={13} className="shrink-0 text-[#B8962E]" />
           <span className="truncate">{p.location}</span>
         </div>
@@ -79,7 +79,7 @@ function FeaturedProjectCard({ p }: { p: Property }) {
         </div>
 
         {/* Specs Badges */}
-        <div className="mt-2 flex flex-wrap items-center gap-1 w-full max-w-full overflow-hidden">
+        <div className="mt-2 flex flex-wrap items-center gap-1.5 w-full max-w-full overflow-hidden">
           {p.bhk > 0 && (
             <span className="inline-flex items-center gap-1 rounded-md bg-[#F5F2EC] px-2.5 py-0.5 text-[11px] font-semibold text-slate-800 border border-black/5">
               <Bed size={12} className="text-[#B8962E]" />
@@ -101,13 +101,13 @@ function FeaturedProjectCard({ p }: { p: Property }) {
       </div>
 
       {/* Right Action Buttons */}
-      <div className="flex sm:flex-col items-center gap-2 shrink-0 self-stretch sm:self-center justify-end sm:justify-center ml-auto pt-2 sm:pt-0 border-t sm:border-t-0 border-slate-100 w-full sm:w-auto">
+      <div className="flex sm:flex-col items-center gap-2 shrink-0 self-stretch sm:self-center justify-end sm:justify-center ml-auto pt-2.5 sm:pt-0 border-t sm:border-t-0 border-slate-100 w-full sm:w-auto">
         <Link
           to="/property/$slug"
           params={{ slug: p.slug }}
-          className="inline-flex flex-1 sm:flex-initial items-center justify-center rounded-xl border border-[#B8962E] px-4 py-1.5 text-xs font-bold text-[#B8962E] transition-all hover:bg-[#B8962E] hover:text-white shadow-xs"
+          className="inline-flex flex-1 sm:flex-initial items-center justify-center rounded-xl border border-[#B8962E] px-4 py-2 sm:py-1.5 text-xs font-bold text-[#B8962E] transition-all hover:bg-[#B8962E] hover:text-white shadow-xs"
         >
-          View
+          View Details
         </Link>
         <button
           type="button"
@@ -123,7 +123,7 @@ function FeaturedProjectCard({ p }: { p: Property }) {
             });
           }}
           aria-label={`Enquire about ${p.title}`}
-          className="grid h-8 w-8 shrink-0 place-items-center rounded-full border border-[#B8962E]/40 text-[#B8962E] transition-colors hover:bg-[#B8962E] hover:text-white shadow-xs"
+          className="grid h-9 w-9 sm:h-8 sm:w-8 shrink-0 place-items-center rounded-full border border-[#B8962E]/40 text-[#B8962E] transition-colors hover:bg-[#B8962E] hover:text-white shadow-xs"
         >
           <Phone size={14} />
         </button>
@@ -192,31 +192,49 @@ export function FeaturedProperties() {
   return (
     <>
       {/* MOBILE VIEW (< md): Horizontal project cards matching reference image */}
-      <section className="block md:hidden relative bg-[#FAF8F5] py-8 px-4">
-        <div className="mx-auto max-w-4xl rounded-3xl bg-white p-5 shadow-sm border border-slate-200/60">
+      <section className="block md:hidden relative bg-[#FAF8F5] py-6 px-3 sm:px-4">
+        <div className="mx-auto max-w-4xl rounded-3xl bg-white p-4 sm:p-5 shadow-sm border border-slate-200/60">
           {/* Top Header */}
-          <div className="flex items-center justify-between gap-4 border-b border-slate-100 pb-4">
-            <h2 className="font-display text-2xl font-bold text-slate-900">
+          <div className="flex items-center justify-between gap-3 border-b border-slate-100 pb-3.5">
+            <h2 className="font-display text-xl sm:text-2xl font-bold text-slate-900">
               Featured Projects
             </h2>
             <Link
               to="/buy-properties/$type"
               params={{ type: "all" }}
-              className="inline-flex items-center gap-1 text-xs font-semibold text-[#B8962E] hover:underline"
+              className="inline-flex shrink-0 items-center gap-1 text-xs font-semibold text-[#B8962E] hover:underline"
             >
               View All <ArrowRight size={14} />
             </Link>
           </div>
 
+          {/* Mobile Category Filter Pills */}
+          <div className="mt-3.5 flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-hide">
+            {tabs.map((t) => (
+              <button
+                key={t}
+                type="button"
+                onClick={() => setTab(t)}
+                className={`shrink-0 rounded-full px-3 py-1.5 text-[11px] font-semibold transition-all ${
+                  tab === t
+                    ? "bg-[#B8962E] text-white shadow-2xs"
+                    : "bg-slate-100 text-slate-600 hover:bg-slate-200"
+                }`}
+              >
+                {t}
+              </button>
+            ))}
+          </div>
+
           {/* Project List */}
-          <div className="mt-5 flex flex-col gap-4">
+          <div className="mt-4 flex flex-col gap-3.5">
             {isLoading
               ? Array.from({ length: 3 }).map((_, i) => <FeaturedProjectCardSkeleton key={i} />)
               : mobileList.map((p) => <FeaturedProjectCard key={p.id} p={p} />)}
           </div>
 
           {/* RERA Footer */}
-          <div className="mt-6 flex items-center justify-center gap-1.5 text-xs font-semibold text-slate-500 border-t border-slate-100 pt-4">
+          <div className="mt-5 flex items-center justify-center gap-1.5 text-xs font-semibold text-slate-500 border-t border-slate-100 pt-4">
             <ShieldCheck size={15} className="text-[#B8962E]" />
             <span>RERA Registered Projects</span>
           </div>

@@ -5,8 +5,6 @@ import { toast } from "sonner";
 import { useNavigate } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { KeywordAutocomplete } from "@/components/KeywordAutocomplete";
-import { LocalityAutocomplete } from "@/components/LocalityAutocomplete";
 import { getSearchFilters, SEARCH_FILTERS_DEFAULTS } from "@/lib/site-cms";
 import { useFormOptions } from "@/lib/form-options";
 
@@ -208,109 +206,100 @@ export function SearchPanel() {
       initial={false}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.7, delay: 0.6 }}
-      className="relative z-20 mx-auto mt-0 w-full max-w-[1140px] rounded-2xl border-t-4 border-gold p-3.5 sm:p-5 md:p-8 shadow-elevated md:-mt-[60px]"
+      className="relative z-20 mx-auto mt-3 w-[calc(100%-1rem)] sm:w-[calc(100%-2rem)] md:w-full max-w-[1040px] rounded-2xl border-t-4 border-gold p-3.5 sm:p-5 md:p-6 shadow-elevated md:-mt-[50px]"
       style={{
         background: "rgba(248,245,240,0.97)",
         backdropFilter: "blur(8px)",
       }}
     >
       {/* Tabs */}
-      <div className="flex justify-center gap-6 sm:gap-8 border-b border-charcoal/10 pb-2.5 sm:pb-3">
+      <div className="flex justify-center gap-6 sm:gap-8 border-b border-charcoal/10 pb-2">
         {tabs.map((t) => (
           <button
             key={t}
             type="button"
             onClick={() => setTab(t)}
-            className={`relative px-2 pb-2 text-xs sm:text-sm font-medium transition-colors ${
-              tab === t ? "text-charcoal" : "text-charcoal/50"
+            className={`relative px-2 pb-1.5 text-xs sm:text-sm font-medium transition-colors ${
+              tab === t ? "text-charcoal font-semibold" : "text-charcoal/50"
             }`}
           >
             {t}
             {tab === t && (
               <motion.div
                 layoutId="tab-underline"
-                className="absolute -bottom-[11px] sm:-bottom-[13px] left-0 right-0 h-[2px] bg-gold"
+                className="absolute -bottom-[9px] left-0 right-0 h-[2px] bg-gold"
               />
             )}
           </button>
         ))}
       </div>
 
-      {/* Main Filter Section */}
-      <div className="mt-3.5 space-y-3 sm:mt-5 sm:space-y-4">
-        {/* Row 1 & 2 on mobile: City (50%), Area/Zone (50%), Locality (100%) */}
-        <div className="grid grid-cols-2 gap-2 sm:gap-3 md:grid-cols-3">
-          <div className="min-w-0 col-span-1">
+      {/* Compact 4-Section Filter Grid */}
+      <div className="mt-3 space-y-2.5 sm:mt-4 sm:space-y-3">
+        <div className="grid grid-cols-2 gap-2 sm:gap-3 md:grid-cols-4">
+          {/* 1. City */}
+          <div className="min-w-0">
             <Select label="City" value={city} onChange={(e) => setCity(e.target.value)}>
               {!cityOptions.length && <option value="">No cities configured</option>}
               {cityOptions.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
             </Select>
           </div>
-          <div className="min-w-0 col-span-1">
+
+          {/* 2. Area / Zone */}
+          <div className="min-w-0">
             <Select label="Area / Zone" value={zone} onChange={(e) => setZone(e.target.value)}>
               {!localityOptions.length && <option value="">No areas configured</option>}
               {localityOptions.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
             </Select>
           </div>
-          <div className="min-w-0 col-span-2 md:col-span-1">
-            <LocalityAutocomplete value={locality} onChange={setLocality} city={city} zone={zone} />
-          </div>
-        </div>
 
-        {/* Row 3 & 4 on mobile: Min Budget (50%), Max Budget (50%), Property Type (100%) */}
-        <div className="grid grid-cols-2 gap-2 sm:gap-3 md:grid-cols-3">
-          <div className="min-w-0 col-span-1">
-            <Select label={tab === "Rent" ? "Min Rent" : "Min Budget"} value={minBudget} onChange={(e) => setMinBudget(e.target.value)}>
-              <option value="">Any</option>
-              {minBudgetOptions.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
-            </Select>
-          </div>
-          <div className="min-w-0 col-span-1">
-            <Select label={tab === "Rent" ? "Max Rent" : "Max Budget"} value={maxBudget} onChange={(e) => setMaxBudget(e.target.value)}>
-              <option value="">Any</option>
-              {maxBudgetOptions.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
-            </Select>
-          </div>
-          <div className="min-w-0 col-span-2 md:col-span-1">
-            <Label>Property Type</Label>
-            <div className="mt-1 flex w-full flex-wrap items-center gap-1.5 sm:gap-2">
-              {propTypes.map((p) => (
-                <Chip key={p} active={selectedTypes.includes(p)} onClick={() => toggle(selectedTypes, setSelectedTypes, p)}>
-                  {p}
-                </Chip>
-              ))}
-            </div>
-          </div>
-        </div>
-
-        {/* BHK & Sell fields */}
-        <div
-          className={`grid grid-cols-1 gap-2 sm:gap-3 ${tab === "Sell" ? "md:grid-cols-4" : "md:grid-cols-1"}`}
-        >
+          {/* 3. Property Type */}
           <div className="min-w-0">
-            <Label>BHK</Label>
-            <div className="mt-1 flex w-full flex-wrap items-center gap-1.5 sm:gap-2">
-              {bhks.map((b) => (
-                <Chip key={b} active={selectedBhks.includes(b)} onClick={() => toggle(selectedBhks, setSelectedBhks, b)}>
-                  {b}
-                </Chip>
+            <Select
+              label="Property Type"
+              value={selectedTypes[0] ?? ""}
+              onChange={(e) => setSelectedTypes(e.target.value ? [e.target.value] : [])}
+            >
+              <option value="">All Types</option>
+              {propTypes.map((p) => (
+                <option key={p} value={p}>{p}</option>
               ))}
-            </div>
+            </Select>
           </div>
-          {tab === "Sell" && (
-            <>
-              <Input label="Min Sqft" placeholder={filters.min_sqft_placeholder ?? SEARCH_FILTERS_DEFAULTS.min_sqft_placeholder} type="number" value={minSqft} onChange={(e) => setMinSqft(e.target.value)} />
-              <Input label="Max Sqft" placeholder={filters.max_sqft_placeholder ?? SEARCH_FILTERS_DEFAULTS.max_sqft_placeholder} type="number" value={maxSqft} onChange={(e) => setMaxSqft(e.target.value)} />
-              <KeywordAutocomplete value={keyword} onChange={setKeyword} placeholder={filters.keyword_placeholder ?? ""} />
-            </>
-          )}
+
+          {/* 4. Budget */}
+          <div className="min-w-0">
+            <Select
+              label={tab === "Rent" ? "Budget / Rent" : "Budget"}
+              value={maxBudget}
+              onChange={(e) => setMaxBudget(e.target.value)}
+            >
+              <option value="">Any Budget</option>
+              {maxBudgetOptions.map((o) => (
+                <option key={o.value} value={o.value}>Up to {o.label}</option>
+              ))}
+            </Select>
+          </div>
         </div>
 
-        {/* Contact row — required for enquiry */}
+        {/* BHK Single-Row Pills */}
+        <div className="flex items-center justify-between gap-2 pt-0.5">
+          <span className="shrink-0 text-[10px] font-semibold uppercase tracking-[0.12em] text-slate-500 sm:text-xs">
+            BHK:
+          </span>
+          <div className="flex flex-1 items-center gap-1.5 overflow-x-auto scrollbar-hide">
+            {bhks.map((b) => (
+              <Chip key={b} active={selectedBhks.includes(b)} onClick={() => toggle(selectedBhks, setSelectedBhks, b)}>
+                {b}
+              </Chip>
+            ))}
+          </div>
+        </div>
+
+        {/* Contact row — required only for Sell enquiry */}
         {tab === "Sell" && filters.show_contact_details !== false && (
-          <div className="border-t border-charcoal/10 pt-3 sm:pt-4">
-            <Label>Your Contact Details</Label>
-            <div className="mt-2 grid grid-cols-1 gap-2.5 sm:gap-3 md:grid-cols-3">
+          <div className="border-t border-charcoal/10 pt-2.5">
+            <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
               <Input label="Name" placeholder="Full name" value={name} onChange={(e) => setName(e.target.value)} required maxLength={100} />
               <Input label="Phone" placeholder="+91 99999 99999" value={phone} onChange={(e) => setPhone(e.target.value)} required maxLength={30} type="tel" />
               <Input label="Email" placeholder="you@example.com" value={email} onChange={(e) => setEmail(e.target.value)} required maxLength={255} type="email" />
@@ -323,30 +312,25 @@ export function SearchPanel() {
         whileHover={{ scale: submitting ? 1 : 1.01 }}
         type="submit"
         disabled={submitting}
-        className="mt-4 sm:mt-6 flex h-11 sm:h-[52px] w-full items-center justify-center gap-2 rounded-full text-sm sm:text-base font-medium text-white shadow-gold transition-shadow hover:shadow-elevated disabled:opacity-70"
+        className="mt-3.5 sm:mt-4 flex h-10 sm:h-11 w-full items-center justify-center gap-2 rounded-full text-xs sm:text-sm font-semibold text-white shadow-gold transition-shadow hover:shadow-elevated disabled:opacity-70"
         style={{
           background: "linear-gradient(135deg, #B8962E, #D4AF6A)",
         }}
       >
-        {submitting ? <Loader2 size={18} className="animate-spin" /> : tab === "Sell" ? <Send size={18} /> : <Search size={18} />}
+        {submitting ? <Loader2 size={16} className="animate-spin" /> : tab === "Sell" ? <Send size={16} /> : <Search size={16} />}
         {submitting
           ? "Submitting…"
           : tab === "Sell"
             ? (filters.enquiry_button_text ?? SEARCH_FILTERS_DEFAULTS.enquiry_button_text)
             : (filters.search_button_text ?? SEARCH_FILTERS_DEFAULTS.search_button_text)}
       </motion.button>
-      {filters.helper_text && (
-        <p className="mt-2 text-center text-[10px] sm:text-[11px] text-charcoal/55">
-          {filters.helper_text}
-        </p>
-      )}
     </motion.form>
   );
 }
 
 function Label({ children }: { children: React.ReactNode }) {
   return (
-    <label className="mb-1 block text-[10px] font-medium uppercase tracking-[0.12em] text-slate-500 sm:text-xs">
+    <label className="mb-0.5 block text-[9.5px] font-semibold uppercase tracking-[0.1em] text-slate-500 sm:text-[11px]">
       {children}
     </label>
   );
@@ -362,7 +346,7 @@ function Select({
       <Label>{label}</Label>
       <select
         {...rest}
-        className="mt-1 h-11 w-full min-w-0 rounded-xl border border-slate-200 bg-white px-3 pr-8 text-xs text-charcoal outline-none focus:border-gold sm:h-12 sm:text-sm truncate"
+        className="h-9.5 w-full min-w-0 rounded-xl border border-slate-200 bg-white px-2.5 pr-6 text-xs text-charcoal outline-none focus:border-gold sm:h-11 sm:px-3 sm:text-sm truncate"
       >
         {children}
       </select>
@@ -377,7 +361,7 @@ function Input(props: React.InputHTMLAttributes<HTMLInputElement> & { label: str
       <Label>{label}</Label>
       <input
         {...rest}
-        className="mt-1 h-11 w-full min-w-0 rounded-xl border border-slate-200 bg-white px-3 text-xs text-charcoal placeholder:text-charcoal/35 outline-none focus:border-gold sm:h-12 sm:text-sm"
+        className="h-9.5 w-full min-w-0 rounded-xl border border-slate-200 bg-white px-2.5 text-xs text-charcoal placeholder:text-charcoal/35 outline-none focus:border-gold sm:h-11 sm:px-3 sm:text-sm"
       />
     </div>
   );
@@ -396,7 +380,7 @@ function Chip({
     <button
       type="button"
       onClick={onClick}
-      className={`flex-none whitespace-nowrap rounded-full border px-2.5 py-1.5 text-[10px] font-medium transition-all sm:px-3 sm:text-xs ${
+      className={`flex-none whitespace-nowrap rounded-full border px-2.5 py-1 text-[10px] font-medium transition-all sm:px-3 sm:py-1.5 sm:text-xs ${
         active
           ? "border-gold bg-gold text-charcoal font-semibold"
           : "border-charcoal/15 bg-white text-charcoal/70 hover:border-gold/50"

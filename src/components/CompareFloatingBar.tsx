@@ -53,36 +53,59 @@ export function CompareFloatingBar() {
             transition={{ type: "spring", stiffness: 350, damping: 28 }}
             className="fixed inset-x-0 bottom-16 md:bottom-0 z-[60] border-t border-gold/40 bg-charcoal/95 px-3 py-2.5 text-white shadow-[0_-10px_30px_rgba(0,0,0,0.3)] backdrop-blur-md sm:px-6"
           >
-            <div className="mx-auto flex w-full max-w-7xl flex-wrap items-center justify-between gap-3">
-              {/* Left Label */}
-              <div className="flex items-center gap-2">
-                <div className="grid h-8 w-8 place-items-center rounded-full bg-gold/20 text-gold">
-                  <GitCompare size={16} />
+            <div className="mx-auto flex w-full max-w-7xl flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between sm:gap-3">
+              <div className="flex items-center justify-between gap-2">
+                {/* Left Label */}
+                <div className="flex items-center gap-2 min-w-0">
+                  <div className="grid h-7 w-7 sm:h-8 sm:w-8 shrink-0 place-items-center rounded-full bg-gold/20 text-gold">
+                    <GitCompare size={15} />
+                  </div>
+                  <div className="min-w-0">
+                    <div className="text-[11px] sm:text-xs font-bold text-gold uppercase tracking-wider truncate">
+                      Compare ({compareProps.length}/4)
+                    </div>
+                    <div className="hidden sm:block text-[11px] text-white/70">
+                      {compareProps.length} of 4 selected
+                      {compareProps.length < 2 && " (Select 1 more to compare)"}
+                    </div>
+                  </div>
                 </div>
-                <div>
-                  <div className="text-xs font-bold text-gold uppercase tracking-wider">
-                    Compare Properties
-                  </div>
-                  <div className="text-[11px] text-white/70">
-                    {compareProps.length} of 4 selected
-                    {compareProps.length < 2 && " (Select 1 more to compare)"}
-                  </div>
+
+                {/* Mobile Action Buttons */}
+                <div className="flex sm:hidden items-center gap-1.5 shrink-0">
+                  <button
+                    onClick={clear}
+                    className="rounded-full border border-white/20 px-2.5 py-1 text-[11px] font-semibold text-white/80 transition hover:bg-white/10 hover:text-white"
+                  >
+                    Clear
+                  </button>
+                  <button
+                    onClick={handleCompareClick}
+                    className={`inline-flex items-center gap-1 rounded-full px-3.5 py-1.5 text-[11px] font-bold transition shadow-md ${
+                      compareProps.length >= 2
+                        ? "bg-gradient-to-r from-gold to-gold-light text-charcoal shadow-gold/20"
+                        : "bg-white/20 text-white/60 cursor-not-allowed"
+                    }`}
+                  >
+                    <span>Compare</span>
+                    <ArrowRight size={12} />
+                  </button>
                 </div>
               </div>
 
               {/* Property Thumbnails */}
-              <div className="flex flex-1 items-center gap-2 overflow-x-auto py-1">
+              <div className="flex flex-1 items-center gap-1.5 sm:gap-2 overflow-x-auto py-0.5 scrollbar-hide">
                 {compareProps.map((p) => (
                   <div
                     key={p.id}
-                    className="group relative flex items-center gap-2 rounded-full border border-white/10 bg-white/10 py-1 pl-1 pr-3 text-xs font-medium text-white backdrop-blur transition hover:border-gold/50"
+                    className="group relative flex shrink-0 items-center gap-1.5 sm:gap-2 rounded-full border border-white/10 bg-white/10 py-1 pl-1 pr-2.5 text-[11px] sm:text-xs font-medium text-white backdrop-blur transition hover:border-gold/50"
                   >
                     <img
                       src={resolveLocalImage(p.image, FALLBACK_PROPERTY_IMAGE)}
                       alt={p.title}
-                      className="h-6 w-6 rounded-full object-cover"
+                      className="h-5 w-5 sm:h-6 sm:w-6 rounded-full object-cover"
                     />
-                    <span className="max-w-[120px] truncate sm:max-w-[160px]">{p.title}</span>
+                    <span className="max-w-[100px] truncate sm:max-w-[160px]">{p.title}</span>
                     <button
                       onClick={() => remove(p.id)}
                       aria-label={`Remove ${p.title}`}
@@ -94,8 +117,8 @@ export function CompareFloatingBar() {
                 ))}
               </div>
 
-              {/* Action Buttons */}
-              <div className="flex items-center gap-2">
+              {/* Desktop Action Buttons */}
+              <div className="hidden sm:flex items-center gap-2">
                 <button
                   onClick={clear}
                   className="rounded-full border border-white/20 px-3 py-1.5 text-xs font-semibold text-white/80 transition hover:bg-white/10 hover:text-white"

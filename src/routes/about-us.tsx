@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { queryOptions, useSuspenseQuery } from "@tanstack/react-query";
+import { queryOptions, useQuery } from "@tanstack/react-query";
 import { motion, useInView } from "framer-motion";
 import * as LucideIcons from "lucide-react";
 import { ArrowRight, CheckCircle2, MapPin, Building2, MessageCircle } from "lucide-react";
@@ -8,6 +8,7 @@ import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
 import { siteImages } from "@/data/siteImages";
 import {
+  ABOUT_PAGE_DEFAULTS,
   getAboutPageContent, type AboutPageContent,
   type AboutHeroBlock, type AboutIntroBlock, type AboutMVVBlock, type AboutTrustBlock,
   type AboutStatsBlock, type AboutServicesBlock, type AboutProcessBlock, type AboutCTABlock,
@@ -16,13 +17,11 @@ import {
 const aboutPageQueryOptions = queryOptions({
   queryKey: ["site-about-page"],
   queryFn: getAboutPageContent,
-  staleTime: 0,
-  refetchOnMount: "always",
+  initialData: ABOUT_PAGE_DEFAULTS,
+  staleTime: 60_000,
 });
 
 export const Route = createFileRoute("/about-us")({
-  ssr: false,
-
   head: () => ({
     meta: [
       { title: "About Touch Stone Properties | Trusted Real Estate Broker" },
@@ -68,11 +67,11 @@ function Icon({ name, size = 22, className }: { name: string; size?: number; cla
 }
 
 function AboutUsPage() {
-  const { data: content } = useSuspenseQuery(aboutPageQueryOptions);
+  const { data: content = ABOUT_PAGE_DEFAULTS } = useQuery(aboutPageQueryOptions);
 
   const ordered = (Object.keys(content) as (keyof AboutPageContent)[])
     .filter((k) => content[k]?.active !== false)
-    .sort((a, b) => (content[a].order ?? 0) - (content[b].order ?? 0));
+    .sort((a, b) => (content[a]?.order ?? 0) - (content[b]?.order ?? 0));
 
   return (
     <div className="min-h-screen bg-ivory">
@@ -126,10 +125,10 @@ function Hero({ block }: { block: AboutHeroBlock }) {
 /* ----------------------- COMPANY INTRO ----------------------- */
 function CompanyIntro({ block }: { block: AboutIntroBlock }) {
   return (
-    <section className="px-4 py-16 lg:px-6">
-      <div className="mx-auto grid w-full items-center gap-14 lg:grid-cols-2">
+    <section className="px-4 py-12 sm:py-16 lg:px-6 overflow-hidden">
+      <div className="mx-auto grid w-full items-center gap-10 sm:gap-14 lg:grid-cols-2">
         <motion.div initial={{ opacity: 0, x: -40 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true, margin: "-80px" }} transition={{ duration: 0.7 }}
-          className="relative order-1 h-[460px] lg:order-none md:h-[540px]">
+          className="relative order-1 h-[340px] sm:h-[460px] lg:order-none md:h-[540px]">
           <div className="absolute left-0 top-0 h-[70%] w-[75%] overflow-hidden rounded-2xl shadow-elevated">
             <img src={block.image1_url || siteImages.about.villa} alt="" loading="lazy" className="h-full w-full object-cover" />
           </div>
@@ -137,9 +136,9 @@ function CompanyIntro({ block }: { block: AboutIntroBlock }) {
             <img src={block.image2_url || siteImages.about.interior} alt="" loading="lazy" className="h-full w-full object-cover" />
           </div>
           {(block.badge_title || block.badge_subtitle) && (
-            <div className="absolute -left-3 bottom-6 rounded-xl bg-gold px-5 py-4 text-charcoal shadow-elevated md:bottom-12">
-              <div className="font-display text-2xl font-bold leading-none">{block.badge_title}</div>
-              <div className="text-xs font-semibold tracking-wide">{block.badge_subtitle}</div>
+            <div className="absolute left-2 sm:-left-3 bottom-4 sm:bottom-6 rounded-xl bg-gold px-4 py-3 sm:px-5 sm:py-4 text-charcoal shadow-elevated md:bottom-12">
+              <div className="font-display text-xl sm:text-2xl font-bold leading-none">{block.badge_title}</div>
+              <div className="text-[11px] sm:text-xs font-semibold tracking-wide">{block.badge_subtitle}</div>
             </div>
           )}
         </motion.div>
@@ -182,17 +181,17 @@ function CompanyIntro({ block }: { block: AboutIntroBlock }) {
 /* ----------------------- MVV ----------------------- */
 function MissionVisionValues({ block }: { block: AboutMVVBlock }) {
   return (
-    <section id="mission-vision" className="bg-sand px-4 py-16 lg:px-6">
+    <section id="mission-vision" className="bg-sand px-4 py-12 sm:py-16 lg:px-6">
       <div className="mx-auto w-full">
         <div className="text-center">
           <h2 className="font-display text-3xl font-bold text-charcoal md:text-[44px]">{block.heading}</h2>
           <p className="mx-auto mt-3 max-w-2xl text-[15px] text-charcoal/65">{block.subheading}</p>
         </div>
-        <div className="mt-12 grid gap-6 md:grid-cols-3">
+        <div className="mt-10 sm:mt-12 grid gap-5 sm:gap-6 md:grid-cols-3">
           {block.cards.map((c, i) => (
             <motion.div key={i} initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}
               transition={{ duration: 0.5, delay: i * 0.1 }}
-              className="group relative overflow-hidden rounded-2xl bg-card p-8 shadow-card transition hover:-translate-y-2 hover:shadow-elevated">
+              className="group relative overflow-hidden rounded-2xl bg-card p-6 sm:p-8 shadow-card transition hover:-translate-y-2 hover:shadow-elevated">
               <div className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-gold via-gold/70 to-gold" />
               <div className="grid h-14 w-14 place-items-center rounded-xl bg-gold/15 text-gold">
                 <Icon name={c.icon} size={26} />
@@ -210,9 +209,9 @@ function MissionVisionValues({ block }: { block: AboutMVVBlock }) {
 /* ----------------------- WHY TRUST ----------------------- */
 function WhyTrust({ block }: { block: AboutTrustBlock }) {
   return (
-    <section id="why-choose-us" className="relative overflow-hidden px-4 py-16 lg:px-6">
+    <section id="why-choose-us" className="relative overflow-hidden px-4 py-12 pb-16 sm:py-16 lg:px-6">
       <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_20%_10%,rgba(212,175,55,0.08),transparent_50%)]" />
-      <div className="relative mx-auto grid w-full items-center gap-14 lg:grid-cols-2">
+      <div className="relative mx-auto grid w-full items-center gap-10 sm:gap-14 lg:grid-cols-2">
         <motion.div initial={{ opacity: 0, x: -30 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true }} transition={{ duration: 0.6 }}>
           {block.label && (
             <div className="inline-block rounded-full bg-gold/15 px-3 py-1 text-[12px] font-semibold tracking-[2px] text-gold">{block.label}</div>
@@ -229,13 +228,13 @@ function WhyTrust({ block }: { block: AboutTrustBlock }) {
         </motion.div>
 
         <motion.div initial={{ opacity: 0, x: 30 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true }} transition={{ duration: 0.6 }}
-          className="relative h-[460px] md:h-[520px]">
+          className="relative h-[340px] sm:h-[460px] md:h-[520px]">
           <div className="absolute inset-0 overflow-hidden rounded-2xl shadow-elevated">
             <img src={block.image_url || siteImages.about.whyChoose} alt="" loading="lazy" className="h-full w-full object-cover" />
           </div>
           {block.banner_text && (
-            <div className="absolute -bottom-6 left-1/2 w-[88%] -translate-x-1/2 rounded-2xl bg-charcoal px-6 py-5 text-center text-ivory shadow-elevated">
-              <div className="font-display text-base font-semibold md:text-lg">{block.banner_text}</div>
+            <div className="absolute -bottom-5 sm:-bottom-6 left-1/2 w-[92%] sm:w-[88%] -translate-x-1/2 rounded-2xl bg-charcoal px-4 py-3.5 sm:px-6 sm:py-5 text-center text-ivory shadow-elevated">
+              <div className="font-display text-sm sm:text-base font-semibold md:text-lg">{block.banner_text}</div>
             </div>
           )}
         </motion.div>
@@ -247,8 +246,8 @@ function WhyTrust({ block }: { block: AboutTrustBlock }) {
 /* ----------------------- STATS ----------------------- */
 function StatsBand({ block }: { block: AboutStatsBlock }) {
   return (
-    <section className="bg-charcoal px-4 py-16 lg:px-6">
-      <div className={`mx-auto grid w-full grid-cols-2 gap-8 md:grid-cols-${Math.min(block.items.length, 4)}`}>
+    <section className="bg-charcoal px-4 py-12 sm:py-16 lg:px-6">
+      <div className="mx-auto grid w-full grid-cols-2 gap-6 sm:gap-8 md:grid-cols-4">
         {block.items.map((s, i) => (
           <Counter key={i} n={s.value} suffix={s.suffix} label={s.label} />
         ))}
@@ -273,8 +272,8 @@ function Counter({ n, suffix = "", label }: { n: number; suffix?: string; label:
   }, [inView, n]);
   return (
     <div ref={ref} className="text-center">
-      <div className="font-numeric text-4xl font-bold text-gold md:text-[52px]">{val.toLocaleString("en-IN")}{suffix}</div>
-      <div className="mt-2 text-[13px] font-medium uppercase tracking-wide text-ivory/80 md:text-sm">{label}</div>
+      <div className="font-numeric text-3xl sm:text-4xl font-bold text-gold md:text-[52px]">{val.toLocaleString("en-IN")}{suffix}</div>
+      <div className="mt-1.5 sm:mt-2 text-xs sm:text-[13px] font-medium uppercase tracking-wide text-ivory/80 md:text-sm">{label}</div>
     </div>
   );
 }

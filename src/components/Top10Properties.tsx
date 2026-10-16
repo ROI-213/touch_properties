@@ -209,15 +209,15 @@ function StatusPill({ status }: { status: string }) {
   );
 }
 
-function SinglePropertyCard({ p, onOpen }: { p: Property; onOpen: () => void }) {
+function SinglePropertyCard({ p }: { p: Property; onOpen: () => void }) {
   const { has } = useWishlist();
   const toggle = useToggleWishlist();
   const liked = has(p.id);
 
   return (
-    <article className="group flex flex-col justify-between overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-md transition-all duration-300 hover:shadow-xl hover:border-violet-300">
+    <article className="group flex flex-col justify-between overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm transition-all duration-300 hover:shadow-xl hover:border-violet-300">
       {/* Top Image Box */}
-      <div className="relative h-[180px] sm:h-[210px] w-full overflow-hidden bg-slate-100">
+      <div className="relative h-[145px] sm:h-[200px] w-full overflow-hidden bg-slate-100">
         <img
           src={resolveLocalImage(p.heroImage, FALLBACK_PROPERTY_IMAGE)}
           alt={p.projectName}
@@ -229,7 +229,7 @@ function SinglePropertyCard({ p, onOpen }: { p: Property; onOpen: () => void }) 
         />
 
         {/* Top-Left Badge */}
-        <span className="absolute left-3 top-3 inline-flex items-center gap-1 rounded-lg bg-violet-600 px-2.5 py-1 text-xs font-bold text-white shadow-sm">
+        <span className="absolute left-2.5 top-2.5 inline-flex items-center gap-1 rounded-lg bg-violet-600 px-2.5 py-0.5 text-[11px] font-bold text-white shadow-sm">
           {p.highlight || "Trending"}
         </span>
 
@@ -241,56 +241,46 @@ function SinglePropertyCard({ p, onOpen }: { p: Property; onOpen: () => void }) 
             toggle(p.id);
           }}
           aria-label="Save to wishlist"
-          className="absolute right-3 top-3 grid h-8 w-8 place-items-center rounded-full bg-white/90 shadow-md backdrop-blur transition hover:bg-white hover:scale-110"
+          className="absolute right-2.5 top-2.5 grid h-8 w-8 place-items-center rounded-full bg-white/90 shadow-md backdrop-blur transition hover:bg-white hover:scale-110"
         >
           <Heart className={`h-4 w-4 ${liked ? "fill-crimson text-crimson" : "text-slate-700"}`} />
         </button>
       </div>
 
-      {/* Card Content */}
-      <div className="flex flex-1 flex-col justify-between p-4 sm:p-5">
+      {/* Compact Card Content */}
+      <div className="flex flex-1 flex-col justify-between p-3.5 sm:p-4">
         <div>
-          {/* Builder Name */}
-          <div className="text-[11px] font-bold uppercase tracking-wider text-violet-700">
-            {p.builderName}
-          </div>
-
           {/* Title and Category Tag */}
-          <div className="mt-1 flex items-start justify-between gap-2">
-            <h3 className="font-display text-base sm:text-lg font-bold text-slate-900 leading-snug line-clamp-2">
+          <div className="flex items-center justify-between gap-2">
+            <h3 className="font-display text-base sm:text-lg font-bold text-slate-900 leading-snug line-clamp-1">
               {p.projectName}
             </h3>
             {p.configuration && (
-              <span className="shrink-0 rounded-lg bg-violet-50 px-2.5 py-1 text-[11px] font-semibold text-violet-700 border border-violet-100">
+              <span className="shrink-0 rounded-md bg-violet-50 px-2 py-0.5 text-[10.5px] font-semibold text-violet-700 border border-violet-100">
                 {p.configuration}
               </span>
             )}
           </div>
 
           {/* Location */}
-          <div className="mt-1.5 flex items-center gap-1.5 text-xs text-slate-500">
-            <MapPin size={14} className="shrink-0 text-violet-600" />
+          <div className="mt-1 flex items-center gap-1 text-xs text-slate-500">
+            <MapPin size={13} className="shrink-0 text-violet-600" />
             <span className="truncate">{p.location}</span>
           </div>
         </div>
 
         {/* Price and Details CTA */}
-        <div className="mt-4 flex items-center justify-between border-t border-slate-100 pt-3">
-          <div>
-            <div className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
-              Price Range
-            </div>
-            <div className="font-numeric text-base sm:text-lg font-bold text-violet-700">
-              {p.priceRange}
-            </div>
+        <div className="mt-2.5 flex items-center justify-between border-t border-slate-100 pt-2.5">
+          <div className="font-numeric text-sm sm:text-base font-bold text-violet-700">
+            {p.priceRange}
           </div>
 
           <Link
             to="/property/$slug"
             params={{ slug: p.slug }}
-            className="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-3.5 py-2 text-xs font-bold text-slate-800 shadow-xs transition hover:bg-violet-700 hover:text-white hover:border-violet-700"
+            className="inline-flex items-center gap-1 rounded-xl border border-slate-200 bg-white px-3 py-1.5 text-xs font-bold text-slate-800 shadow-2xs transition hover:bg-violet-700 hover:text-white hover:border-violet-700"
           >
-            View Details <ArrowRight size={13} />
+            View Details <ArrowRight size={12} />
           </Link>
         </div>
       </div>
@@ -323,21 +313,21 @@ function AmenitiesGrid({ amenities }: { amenities: Property["amenities"] }) {
 function ConfigurationsTable({ rows }: { rows: Property["configurations"] }) {
   const list = Array.isArray(rows) ? rows : [];
   return (
-    <div className="overflow-hidden rounded-2xl ring-1 ring-violet-100">
-      <table className="w-full text-left text-sm">
-        <thead className="bg-violet-50 text-[11px] uppercase tracking-[1.5px] text-violet-700">
+    <div className="overflow-x-auto rounded-2xl ring-1 ring-violet-100">
+      <table className="w-full text-left text-xs sm:text-sm">
+        <thead className="bg-violet-50 text-[10px] sm:text-[11px] uppercase tracking-[1.2px] sm:tracking-[1.5px] text-violet-700">
           <tr>
-            <th className="p-4 font-semibold">Type</th>
-            <th className="p-4 font-semibold">Carpet Area</th>
-            <th className="p-4 font-semibold">Price</th>
+            <th className="p-2.5 sm:p-4 font-semibold">Type</th>
+            <th className="p-2.5 sm:p-4 font-semibold">Carpet Area</th>
+            <th className="p-2.5 sm:p-4 font-semibold">Price</th>
           </tr>
         </thead>
         <tbody className="divide-y divide-violet-100 bg-white">
           {list.map((r) => (
             <tr key={r.type} className="text-slate-700">
-              <td className="p-4 font-bold text-slate-900">{r.type}</td>
-              <td className="p-4">{r.size}</td>
-              <td className="p-4 font-semibold text-violet-700">{r.price}</td>
+              <td className="p-2.5 sm:p-4 font-bold text-slate-900">{r.type}</td>
+              <td className="p-2.5 sm:p-4">{r.size}</td>
+              <td className="p-2.5 sm:p-4 font-semibold text-violet-700">{r.price}</td>
             </tr>
           ))}
         </tbody>
@@ -353,8 +343,8 @@ function Gallery({ images }: { images: string[] }) {
   const [active, setActive] = useState(0);
   return (
     <div>
-      <div className="overflow-hidden rounded-3xl ring-1 ring-violet-100">
-        <img src={safeImages[active] ?? safeImages[0]} alt="Gallery" className="h-[360px] w-full object-cover sm:h-[440px]" />
+      <div className="overflow-hidden rounded-2xl sm:rounded-3xl ring-1 ring-violet-100">
+        <img src={safeImages[active] ?? safeImages[0]} alt="Gallery" className="h-[240px] w-full object-cover sm:h-[440px]" />
       </div>
       <div className="mt-3 grid grid-cols-5 gap-2">
         {safeImages.map((src, i) => (
@@ -365,7 +355,7 @@ function Gallery({ images }: { images: string[] }) {
               i === active ? "ring-violet-600" : "ring-transparent hover:ring-violet-200"
             }`}
           >
-            <img src={src} alt="" className="h-16 w-full object-cover sm:h-20" />
+            <img src={src} alt="" className="h-14 w-full object-cover sm:h-20" />
           </button>
         ))}
       </div>
@@ -381,10 +371,10 @@ function ContactForm({ project }: { project: string }) {
         e.preventDefault();
         setSent(true);
       }}
-      className="rounded-3xl bg-gradient-to-br from-violet-600 to-purple-700 p-6 text-white shadow-[0_20px_50px_rgba(109,40,217,0.35)] sm:p-7"
+      className="rounded-2xl sm:rounded-3xl bg-gradient-to-br from-violet-600 to-purple-700 p-5 text-white shadow-[0_20px_50px_rgba(109,40,217,0.35)] sm:p-7"
     >
       <div className="text-[11px] font-bold uppercase tracking-[2px] text-white/70">Get in touch</div>
-      <h4 className="mt-1 text-2xl font-bold" style={{ fontFamily: "'Playfair Display', serif" }}>
+      <h4 className="mt-1 text-xl sm:text-2xl font-bold" style={{ fontFamily: "'Playfair Display', serif" }}>
         Enquire about {project}
       </h4>
       {sent ? (
@@ -421,7 +411,7 @@ function Section({ title, icon: Icon, children }: { title: string; icon: typeof 
         <div className="grid h-9 w-9 place-items-center rounded-xl bg-violet-100 text-violet-700">
           <Icon size={16} />
         </div>
-        <h3 className="text-[20px] font-bold text-slate-900" style={{ fontFamily: "'Playfair Display', serif" }}>
+        <h3 className="text-[18px] sm:text-[20px] font-bold text-slate-900" style={{ fontFamily: "'Playfair Display', serif" }}>
           {title}
         </h3>
       </div>
@@ -446,9 +436,9 @@ function PropertyDetailsModal({ p, onClose }: { p: Property; onClose: () => void
   }, [onClose]);
 
   return (
-    <div className="fixed inset-0 z-[200] flex items-stretch justify-center sm:items-center sm:p-6">
+    <div className="fixed inset-0 z-[200] flex items-end justify-center sm:items-center sm:p-6">
       <motion.div
-        initial={{ }}
+        initial={{}}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
         onClick={onClose}
@@ -459,38 +449,38 @@ function PropertyDetailsModal({ p, onClose }: { p: Property; onClose: () => void
         animate={{ y: 0, opacity: 1 }}
         exit={{ y: "100%", opacity: 0 }}
         transition={{ type: "tween", duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
-        className="relative flex h-[92vh] w-full max-w-6xl flex-col overflow-hidden bg-white shadow-2xl sm:h-auto sm:max-h-[92vh] sm:rounded-3xl"
+        className="relative flex h-[92vh] w-full max-w-6xl flex-col overflow-hidden rounded-t-3xl bg-white shadow-2xl sm:h-auto sm:max-h-[92vh] sm:rounded-3xl"
         role="dialog"
         aria-modal="true"
       >
         {/* Header */}
-        <div className="sticky top-0 z-10 flex items-start justify-between gap-4 border-b border-violet-100 bg-white/95 px-6 py-4 backdrop-blur sm:px-8">
-          <div className="flex items-center gap-3">
+        <div className="sticky top-0 z-10 flex items-start justify-between gap-3 border-b border-violet-100 bg-white/95 px-4 py-3.5 backdrop-blur sm:gap-4 sm:px-8 sm:py-4">
+          <div className="flex items-center gap-3 min-w-0">
             <BuilderLogo initials={p.builderLogo} />
-            <div>
-              <div className="text-[11px] font-semibold uppercase tracking-[2px] text-violet-700">{p.builderName}</div>
-              <h2 className="text-[22px] font-bold text-slate-900" style={{ fontFamily: "'Playfair Display', serif" }}>
+            <div className="min-w-0">
+              <div className="text-[10px] sm:text-[11px] font-semibold uppercase tracking-[1.5px] sm:tracking-[2px] text-violet-700 truncate">{p.builderName}</div>
+              <h2 className="text-lg sm:text-[22px] font-bold text-slate-900 truncate" style={{ fontFamily: "'Playfair Display', serif" }}>
                 {p.projectName}
               </h2>
-              <div className="flex items-center gap-1 text-[12px] text-slate-500">
-                <MapPin size={12} /> {p.location}
+              <div className="flex items-center gap-1 text-[11px] sm:text-[12px] text-slate-500 truncate">
+                <MapPin size={12} className="shrink-0" /> <span className="truncate">{p.location}</span>
               </div>
             </div>
           </div>
           <button
             onClick={onClose}
             aria-label="Close"
-            className="grid h-10 w-10 place-items-center rounded-full bg-slate-100 text-slate-700 transition hover:bg-violet-100 hover:text-violet-700"
+            className="grid h-9 w-9 sm:h-10 sm:w-10 shrink-0 place-items-center rounded-full bg-slate-100 text-slate-700 transition hover:bg-violet-100 hover:text-violet-700"
           >
             <X size={18} />
           </button>
         </div>
 
         {/* Body */}
-        <div className="grid flex-1 grid-cols-1 gap-8 overflow-y-auto p-6 sm:p-8 lg:grid-cols-[1fr_360px]">
-          <div className="space-y-10">
+        <div className="grid flex-1 grid-cols-1 gap-6 overflow-y-auto p-4 sm:gap-8 sm:p-8 lg:grid-cols-[1fr_360px]">
+          <div className="space-y-8 sm:space-y-10">
             <Section title="Project Overview" icon={Sparkles}>
-              <p className="text-[15px] leading-[1.75] text-slate-700">{p.overview}</p>
+              <p className="text-[14px] sm:text-[15px] leading-[1.75] text-slate-700">{p.overview}</p>
               <div className="flex flex-wrap gap-2">
                 <StatusPill status={p.status} />
                 <span className="inline-flex items-center gap-1 rounded-full bg-violet-50 px-3 py-1 text-[11px] font-semibold text-violet-700 ring-1 ring-violet-200">
@@ -518,7 +508,7 @@ function PropertyDetailsModal({ p, onClose }: { p: Property; onClose: () => void
             </Section>
 
             <Section title="Development Details" icon={Building2}>
-              <div className="grid gap-3 sm:grid-cols-3">
+              <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-3 sm:gap-3">
                 {[
                   { k: "Type", v: p.propertyType },
                   { k: "Configuration", v: p.configuration },
@@ -527,9 +517,9 @@ function PropertyDetailsModal({ p, onClose }: { p: Property; onClose: () => void
                   { k: "Total Units", v: "420" },
                   { k: "Total Towers", v: "6" },
                 ].map((d) => (
-                  <div key={d.k} className="rounded-2xl bg-violet-50/60 p-4 ring-1 ring-violet-100">
+                  <div key={d.k} className="rounded-2xl bg-violet-50/60 p-3 sm:p-4 ring-1 ring-violet-100">
                     <div className="text-[10px] font-semibold uppercase tracking-[1.5px] text-violet-700">{d.k}</div>
-                    <div className="mt-1 text-[14px] font-semibold text-slate-900">{d.v}</div>
+                    <div className="mt-1 text-[13px] sm:text-[14px] font-semibold text-slate-900">{d.v}</div>
                   </div>
                 ))}
               </div>
@@ -546,11 +536,11 @@ function PropertyDetailsModal({ p, onClose }: { p: Property; onClose: () => void
             <Section title="Location Advantages" icon={MapPin}>
               <div className="grid gap-2 sm:grid-cols-2">
                 {locationAdvantages.map((l) => (
-                  <div key={l.place} className="flex items-center justify-between rounded-2xl bg-white p-4 ring-1 ring-violet-100">
-                    <div className="flex items-center gap-2.5 text-[14px] text-slate-700">
-                      <MapPin size={14} className="text-violet-600" /> {l.place}
+                  <div key={l.place} className="flex items-center justify-between rounded-2xl bg-white p-3.5 sm:p-4 ring-1 ring-violet-100">
+                    <div className="flex items-center gap-2 text-[13px] sm:text-[14px] text-slate-700">
+                      <MapPin size={14} className="shrink-0 text-violet-600" /> {l.place}
                     </div>
-                    <span className="text-[12px] font-semibold text-violet-700">{l.distance}</span>
+                    <span className="text-[12px] font-semibold text-violet-700 shrink-0">{l.distance}</span>
                   </div>
                 ))}
               </div>
@@ -572,12 +562,12 @@ function PropertyDetailsModal({ p, onClose }: { p: Property; onClose: () => void
 
             <Section title="Price Breakdown" icon={Calendar}>
               <div className="overflow-hidden rounded-2xl ring-1 ring-violet-100">
-                <table className="w-full text-left text-sm">
+                <table className="w-full text-left text-xs sm:text-sm">
                   <tbody className="divide-y divide-violet-100 bg-white">
                     {priceBreakdown.map((b, i) => (
                       <tr key={b.label} className={i === priceBreakdown.length - 1 ? "bg-violet-50 font-bold text-violet-900" : "text-slate-700"}>
-                        <td className="p-4">{b.label}</td>
-                        <td className="p-4 text-right">{b.amount}</td>
+                        <td className="p-3 sm:p-4">{b.label}</td>
+                        <td className="p-3 sm:p-4 text-right">{b.amount}</td>
                       </tr>
                     ))}
                   </tbody>
@@ -586,7 +576,7 @@ function PropertyDetailsModal({ p, onClose }: { p: Property; onClose: () => void
             </Section>
 
             <Section title="Builder Information" icon={Shield}>
-              <div className="rounded-2xl bg-white p-5 ring-1 ring-violet-100">
+              <div className="rounded-2xl bg-white p-4 sm:p-5 ring-1 ring-violet-100">
                 <div className="flex items-center gap-3">
                   <BuilderLogo initials={p.builderLogo} />
                   <div>
@@ -604,7 +594,7 @@ function PropertyDetailsModal({ p, onClose }: { p: Property; onClose: () => void
                     <div className="font-bold text-slate-900">{p.builderInfo.projects}</div>
                   </div>
                 </div>
-                <p className="mt-4 text-[14px] leading-relaxed text-slate-700">{p.builderInfo.description}</p>
+                <p className="mt-4 text-[13px] sm:text-[14px] leading-relaxed text-slate-700">{p.builderInfo.description}</p>
               </div>
             </Section>
           </div>
@@ -659,16 +649,23 @@ export function Top10Properties() {
     return mapped.length > 0 ? mapped : fallbackProperties;
   }, [dbProps]);
 
-  // Group properties into pairs of 2 so 2 properties are shown at a time
+  // Always show 2 properties per slide (one below another on mobile, side-by-side on desktop)
+  const chunkSize = 2;
   const pairs = useMemo(() => {
     const result: Property[][] = [];
-    for (let i = 0; i < properties.length; i += 2) {
-      result.push(properties.slice(i, i + 2));
+    for (let i = 0; i < properties.length; i += chunkSize) {
+      result.push(properties.slice(i, i + chunkSize));
     }
-    return result.length > 0 ? result : [fallbackProperties.slice(0, 2)];
+    return result.length > 0 ? result : [fallbackProperties.slice(0, chunkSize)];
   }, [properties]);
 
   const totalPairs = pairs.length;
+  useEffect(() => {
+    if (index >= totalPairs && totalPairs > 0) {
+      setIndex(0);
+    }
+  }, [totalPairs, index]);
+
   const trackRef = useRef<HTMLDivElement>(null);
   const heading = useContentSection("home.top10", {
     title: "Top 10 Featured Properties",
@@ -681,7 +678,7 @@ export function Top10Properties() {
   const onTouchEnd = (e: React.TouchEvent) => {
     if (startX.current == null) return;
     const dx = e.changedTouches[0].clientX - startX.current;
-    if (Math.abs(dx) > 60) (dx < 0 ? next : prev)();
+    if (Math.abs(dx) > 50) (dx < 0 ? next : prev)();
     startX.current = null;
   };
 
@@ -695,10 +692,13 @@ export function Top10Properties() {
     return () => clearInterval(timer);
   }, [paused, open, totalPairs]);
 
-  const activePair = useMemo(() => pairs[index] ?? pairs[0] ?? fallbackProperties.slice(0, 2), [pairs, index]);
+  const activePair = useMemo(
+    () => pairs[index] ?? pairs[0] ?? fallbackProperties.slice(0, chunkSize),
+    [pairs, index]
+  );
 
   return (
-    <section className="relative overflow-hidden bg-gradient-to-b from-white via-violet-50/30 to-white py-8 sm:py-14">
+    <section className="relative overflow-hidden bg-gradient-to-b from-white via-violet-50/30 to-white py-6 sm:py-12">
       <div className="pointer-events-none absolute -top-32 left-1/2 h-96 w-96 -translate-x-1/2 rounded-full bg-violet-200/40 blur-3xl" />
 
       <div className="relative mx-auto w-full px-3 sm:px-5 md:px-8 lg:px-10">
@@ -708,22 +708,22 @@ export function Top10Properties() {
           transition={{ duration: 0.6 }}
           className="text-center"
         >
-          <span className="inline-flex items-center gap-2 rounded-full bg-white px-4 py-2 text-[11px] font-bold uppercase tracking-[3px] text-violet-700 shadow-[0_6px_18px_rgba(109,40,217,0.15)] ring-1 ring-violet-200">
+          <span className="inline-flex items-center gap-1.5 rounded-full bg-white px-3.5 py-1.5 text-[10px] sm:text-[11px] font-bold uppercase tracking-[2.5px] text-violet-700 shadow-[0_6px_18px_rgba(109,40,217,0.12)] ring-1 ring-violet-200">
             <Sparkles size={12} /> Top 10
           </span>
           <h2
-            className="mt-4 text-[32px] sm:text-[44px] lg:text-[50px] font-bold leading-tight text-slate-900"
+            className="mt-2.5 sm:mt-3 text-2xl sm:text-[40px] lg:text-[46px] font-bold leading-tight text-slate-900"
             style={{ fontFamily: "'Playfair Display', serif" }}
           >
             {heading.title}
           </h2>
-          <p className="mx-auto mt-3 max-w-2xl text-sm sm:text-base leading-relaxed text-slate-600">
+          <p className="hidden sm:block mx-auto mt-2 max-w-2xl text-sm sm:text-base leading-relaxed text-slate-600 px-2">
             {heading.subtitle}
           </p>
         </motion.div>
 
         <div
-          className="relative mt-8 sm:mt-12"
+          className="relative mt-4 sm:mt-8 [overflow-anchor:none]"
           onMouseEnter={() => setPaused(true)}
           onMouseLeave={() => setPaused(false)}
           onTouchStart={onTouchStart}
@@ -737,10 +737,10 @@ export function Top10Properties() {
                 animate={{ opacity: 1, x: 0 }}
                 exit={{ opacity: 0, x: -40 }}
                 transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
-                className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6"
+                className="grid grid-cols-1 md:grid-cols-2 gap-3.5 sm:gap-6"
               >
                 {isLoading
-                  ? Array.from({ length: 2 }).map((_, i) => <Top10PropertyCardSkeleton key={i} />)
+                  ? Array.from({ length: chunkSize }).map((_, i) => <Top10PropertyCardSkeleton key={i} />)
                   : activePair.map((p) => (
                       <SinglePropertyCard key={p.id} p={p} onOpen={() => setOpen(p)} />
                     ))}
@@ -754,14 +754,14 @@ export function Top10Properties() {
               <button
                 onClick={prev}
                 aria-label="Previous properties"
-                className="absolute -left-3 sm:-left-4 top-1/2 z-10 grid h-9 w-9 sm:h-11 sm:w-11 -translate-y-1/2 place-items-center rounded-full bg-white/95 text-violet-700 shadow-lg ring-1 ring-slate-200 transition hover:scale-110 hover:bg-violet-700 hover:text-white"
+                className="absolute left-1 sm:-left-4 top-1/2 z-10 grid h-8 w-8 sm:h-11 sm:w-11 -translate-y-1/2 place-items-center rounded-full bg-white/95 text-violet-700 shadow-lg ring-1 ring-slate-200 transition hover:scale-110 hover:bg-violet-700 hover:text-white"
               >
                 <ChevronLeft className="h-4 w-4 sm:h-5 sm:w-5" />
               </button>
               <button
                 onClick={next}
                 aria-label="Next properties"
-                className="absolute -right-3 sm:-right-4 top-1/2 z-10 grid h-9 w-9 sm:h-11 sm:w-11 -translate-y-1/2 place-items-center rounded-full bg-white/95 text-violet-700 shadow-lg ring-1 ring-slate-200 transition hover:scale-110 hover:bg-violet-700 hover:text-white"
+                className="absolute right-1 sm:-right-4 top-1/2 z-10 grid h-8 w-8 sm:h-11 sm:w-11 -translate-y-1/2 place-items-center rounded-full bg-white/95 text-violet-700 shadow-lg ring-1 ring-slate-200 transition hover:scale-110 hover:bg-violet-700 hover:text-white"
               >
                 <ChevronRight className="h-4 w-4 sm:h-5 sm:w-5" />
               </button>
@@ -771,7 +771,7 @@ export function Top10Properties() {
 
         {/* Dots */}
         {totalPairs > 1 && (
-          <div className="mt-8 flex items-center justify-center gap-2">
+          <div className="mt-6 sm:mt-8 flex flex-wrap items-center justify-center gap-2">
             {pairs.map((_, i) => (
               <button
                 key={i}

@@ -1,10 +1,12 @@
 import { MessageCircle } from "lucide-react";
 import { useState } from "react";
 import { useBrandSettings } from "@/hooks/useSiteSettings";
+import { useCompareStore } from "@/hooks/useCompareStore";
 
 export function WhatsAppButton() {
   const [hover, setHover] = useState(false);
   const { brand } = useBrandSettings();
+  const hasCompare = useCompareStore((s) => s.ids.length > 0);
   const digits = (brand.whatsapp || brand.phone).replace(/\D/g, "");
   const href = digits
     ? `https://wa.me/${digits}?text=${encodeURIComponent("Hi, I'm interested in a property")}`
@@ -16,7 +18,9 @@ export function WhatsAppButton() {
       rel="noreferrer"
       onMouseEnter={() => setHover(true)}
       onMouseLeave={() => setHover(false)}
-      className="fixed bottom-[80px] right-4 md:bottom-6 md:right-6 z-[65] grid h-12 w-12 md:h-14 md:w-14 place-items-center rounded-full bg-whatsapp text-white shadow-lg transition-transform hover:scale-110 active:scale-95 touch-manipulation min-h-[48px] min-w-[48px]"
+      className={`fixed right-4 md:right-6 z-[65] grid h-12 w-12 md:h-14 md:w-14 place-items-center rounded-full bg-whatsapp text-white shadow-lg transition-all duration-300 hover:scale-110 active:scale-95 touch-manipulation min-h-[48px] min-w-[48px] ${
+        hasCompare ? "bottom-[152px] md:bottom-20" : "bottom-[80px] md:bottom-6"
+      }`}
       style={{ animation: "pulse-ring 2s cubic-bezier(0.4,0,0.6,1) infinite" }}
       aria-label="Chat on WhatsApp"
     >

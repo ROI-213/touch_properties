@@ -36,10 +36,10 @@ function WishlistPage() {
     <div className="min-h-screen bg-ivory">
       <Navbar />
 
-      <section className="mx-auto w-full px-6 pb-24 pt-36 sm:pt-40">
-        <div className="mb-10 text-center">
-          <div className="mx-auto mb-5 h-px w-10 bg-gold" />
-          <h1 className="font-display text-4xl font-bold text-charcoal sm:text-5xl">
+      <section className="mx-auto w-full px-4 sm:px-6 pb-24 pt-28 sm:pt-40">
+        <div className="mb-8 sm:mb-10 text-center">
+          <div className="mx-auto mb-4 sm:mb-5 h-px w-10 bg-gold" />
+          <h1 className="font-display text-3xl font-bold text-charcoal sm:text-5xl">
             My Saved Properties
           </h1>
           {saved.length > 0 && (
@@ -56,7 +56,7 @@ function WishlistPage() {
         </div>
 
         {saved.length === 0 ? (
-          <div className="mx-auto max-w-md rounded-2xl border border-charcoal/10 bg-white p-10 text-center shadow-card">
+          <div className="mx-auto max-w-md rounded-2xl border border-charcoal/10 bg-white p-8 sm:p-10 text-center shadow-card">
             <div className="mx-auto mb-5 grid h-20 w-20 place-items-center rounded-full bg-sand">
               <Heart size={36} className="text-gold" />
             </div>
@@ -75,7 +75,7 @@ function WishlistPage() {
             </Link>
           </div>
         ) : (
-          <div className="grid grid-cols-2 gap-3 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
             {saved.map((p, i) => (
               <PropertyCard key={p.id} p={p} index={i} />
             ))}

@@ -40,7 +40,7 @@ export function AuthModal() {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          className="fixed inset-0 z-[120] flex items-center justify-center bg-black/55 backdrop-blur-md p-4"
+          className="fixed inset-0 z-[120] flex justify-center overflow-y-auto bg-black/55 backdrop-blur-md p-3 sm:p-4"
           onClick={closeModal}
           role="dialog"
           aria-modal="true"
@@ -51,11 +51,11 @@ export function AuthModal() {
             exit={{ opacity: 0, scale: 0.94, y: 12 }}
             transition={{ type: "spring", stiffness: 320, damping: 30 }}
             onClick={(e) => e.stopPropagation()}
-            className="relative w-full max-w-[500px] overflow-hidden rounded-[28px] bg-white/95 backdrop-blur-xl shadow-[0_30px_80px_rgba(15,23,42,0.4)] ring-1 ring-white/60"
+            className="relative my-auto flex max-h-[calc(100dvh-24px)] sm:max-h-[90dvh] w-full max-w-[440px] flex-col overflow-hidden rounded-2xl sm:rounded-[28px] bg-white/95 backdrop-blur-xl shadow-[0_30px_80px_rgba(15,23,42,0.4)] ring-1 ring-white/60"
           >
             {/* Decorative header */}
             <div
-              className="relative h-32 overflow-hidden"
+              className="relative h-14 sm:h-24 shrink-0 overflow-hidden"
               style={{
                 background:
                   "linear-gradient(135deg, #172B58 0%, #21396F 50%, #2d4d8f 100%)",
@@ -68,8 +68,8 @@ export function AuthModal() {
                 </svg>
               </div>
               <div className="absolute inset-0 grid place-items-center">
-                <div className="grid h-14 w-14 place-items-center rounded-2xl bg-gradient-to-br from-[#C8A34D] to-[#E4C06F] shadow-lg">
-                  <Building2 size={28} className="text-white" />
+                <div className="grid h-9 w-9 sm:h-12 sm:w-12 place-items-center rounded-xl sm:rounded-2xl bg-gradient-to-br from-[#C8A34D] to-[#E4C06F] shadow-lg">
+                  <Building2 size={18} className="text-white sm:h-6 sm:w-6" />
                 </div>
               </div>
             </div>
@@ -77,20 +77,20 @@ export function AuthModal() {
             <button
               onClick={closeModal}
               aria-label="Close"
-              className="absolute right-4 top-4 grid h-9 w-9 place-items-center rounded-full bg-white/90 text-slate-600 shadow transition hover:bg-white"
+              className="absolute right-2.5 top-2.5 sm:right-4 sm:top-4 z-20 grid h-8 w-8 sm:h-9 sm:w-9 place-items-center rounded-full bg-white/90 text-slate-600 shadow transition hover:bg-white"
             >
               <X size={16} />
             </button>
 
-            <div className="px-7 pb-7 pt-6">
+            <div className="overflow-y-auto px-4 pb-4 pt-3.5 sm:px-7 sm:pb-6 sm:pt-5">
               {/* Tabs */}
               {mode !== "forgot" && !loginOnly && (
-                <div className="mb-5 flex rounded-full bg-slate-100 p-1">
+                <div className="mb-3 sm:mb-4 flex rounded-full bg-slate-100 p-1">
                   {(["login", "register"] as const).map((m) => (
                     <button
                       key={m}
                       onClick={() => setMode(m)}
-                      className={`flex-1 rounded-full py-2 text-[13px] font-bold transition ${
+                      className={`flex-1 rounded-full py-1.5 sm:py-2 text-[12.5px] sm:text-[13px] font-bold transition ${
                         mode === m
                           ? "bg-gradient-to-r from-[#172B58] to-[#21396F] text-white shadow"
                           : "text-slate-600 hover:text-[#172B58]"
@@ -115,14 +115,14 @@ export function AuthModal() {
 
 function Heading({ title, subtitle }: { title: string; subtitle: string }) {
   return (
-    <div className="mb-5 text-center">
+    <div className="mb-3 sm:mb-4 text-center">
       <h2
-        className="text-2xl font-bold text-[#172B58]"
+        className="text-xl sm:text-2xl font-bold text-[#172B58]"
         style={{ fontFamily: "'Playfair Display', serif" }}
       >
         {title}
       </h2>
-      <p className="mt-1 text-[13px] text-slate-500">{subtitle}</p>
+      <p className="mt-0.5 text-[12px] sm:text-[13px] text-slate-500">{subtitle}</p>
     </div>
   );
 }
@@ -586,7 +586,7 @@ function ForgotForm() {
 
 function Divider() {
   return (
-    <div className="my-4 flex items-center gap-3">
+    <div className="my-2.5 sm:my-4 flex items-center gap-3">
       <div className="h-px flex-1 bg-slate-200" />
       <span className="text-[11px] font-semibold uppercase tracking-wider text-slate-400">or</span>
       <div className="h-px flex-1 bg-slate-200" />

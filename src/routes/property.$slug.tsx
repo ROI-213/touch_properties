@@ -330,19 +330,19 @@ function PropertyPage() {
           </div>
 
           {/* Price */}
-          <div className="mt-6 flex flex-wrap items-end justify-between gap-4">
+          <div className="mt-5 sm:mt-6 flex flex-wrap items-end justify-between gap-3 sm:gap-4">
             <div>
-              <div className="font-numeric text-4xl font-bold text-gold md:text-[48px]">
+              <div className="font-numeric text-3xl sm:text-4xl font-bold text-gold md:text-[48px]">
                 {details.price_display_text || p.price}
               </div>
-              <div className="mt-1 text-[15px] text-charcoal/70">
+              <div className="mt-1 text-sm sm:text-[15px] text-charcoal/70">
                 {details.price_suffix || `₹ ${perSqft.toLocaleString("en-IN")} / sqft`}
               </div>
               {details.price_note && (
                 <div className="mt-1 text-[12px] text-charcoal/60">{details.price_note}</div>
               )}
             </div>
-            <div className="flex flex-col items-end gap-2">
+            <div className="flex flex-col items-start sm:items-end gap-2">
               <Badge className="bg-sage/15 text-sage">{details.price_suffix || "Negotiable ✓"}</Badge>
               <button
                 onClick={() => setEmiOpen(true)}
@@ -356,7 +356,7 @@ function PropertyPage() {
           <Divider />
 
           {/* Specs grid */}
-          <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+          <div className="grid grid-cols-2 gap-2.5 sm:gap-3 sm:grid-cols-3">
             <Spec icon={<Bed size={20} />} label="Bedrooms" value={details.bhk_display_label || (p.bhk ? `${p.bhk} BHK` : "—")} />
             <Spec icon={<Building2 size={20} />} label="Floor" value={details.floor_details || (p.type === "Plot" ? "—" : "—")} />
             <Spec icon={<Maximize size={20} />} label="Super Built-up" value={details.super_builtup_area || `${p.sqft.toLocaleString()} sqft`} />
@@ -366,7 +366,7 @@ function PropertyPage() {
           </div>
 
           {bulletHighlights.length > 0 && (
-            <div className="mt-6 rounded-2xl bg-sand/60 p-5">
+            <div className="mt-6 rounded-2xl bg-sand/60 p-4 sm:p-5">
               <div className="text-[14px] font-semibold text-charcoal">Property Highlights</div>
               <ul className="mt-3 grid gap-2 sm:grid-cols-2">
                 {bulletHighlights.map((it, i) => (
@@ -382,17 +382,17 @@ function PropertyPage() {
           <Divider />
 
           {details.poster_enabled && (
-            <section className="mb-6 overflow-hidden rounded-2xl bg-gradient-to-br from-[#0a1f44] to-[#0a1f44]/90 p-6 text-white shadow-elevated">
+            <section className="mb-6 overflow-hidden rounded-2xl bg-gradient-to-br from-[#0a1f44] to-[#0a1f44]/90 p-5 sm:p-6 text-white shadow-elevated">
               {details.poster_heading && (
                 <div className="text-xs font-bold uppercase tracking-widest text-gold">{details.poster_heading}</div>
               )}
               {details.poster_subheading && (
-                <div className="mt-2 font-display text-2xl font-bold">{details.poster_subheading}</div>
+                <div className="mt-2 font-display text-xl sm:text-2xl font-bold">{details.poster_subheading}</div>
               )}
               <div className="mt-4 flex flex-wrap items-end justify-between gap-3">
                 {details.poster_price_badge && (
                   <div>
-                    <div className="font-numeric text-3xl font-bold text-gold">{details.poster_price_badge}</div>
+                    <div className="font-numeric text-2xl sm:text-3xl font-bold text-gold">{details.poster_price_badge}</div>
                     {details.poster_price_note && <div className="text-xs opacity-80">{details.poster_price_note}</div>}
                   </div>
                 )}
@@ -420,7 +420,7 @@ function PropertyPage() {
           {/* About */}
           <section>
             <h2 className="text-[20px] font-bold text-charcoal">About This Property</h2>
-            <div className="mt-3 space-y-4 text-[15px] leading-relaxed text-charcoal/75">
+            <div className="mt-3 space-y-4 text-[14.5px] sm:text-[15px] leading-relaxed text-charcoal/75">
               {visibleParagraphs.length > 0 ? (
                 visibleParagraphs.map((para: string, i: number) => <p key={i}>{para}</p>)
               ) : (
@@ -446,19 +446,19 @@ function PropertyPage() {
               {amenities.map((a) => (
                 <div
                   key={a.label}
-                  className={`flex items-center gap-2 rounded-lg border-l-[3px] bg-sand px-3 py-2.5 text-[13px] ${
+                  className={`flex items-center gap-1.5 sm:gap-2 rounded-lg border-l-[3px] bg-sand px-2.5 py-2 sm:px-3 sm:py-2.5 text-xs sm:text-[13px] min-w-0 ${
                     a.available
                       ? "border-sage text-charcoal"
                       : "border-charcoal/20 text-charcoal/40 line-through"
                   }`}
                 >
                   {a.available ? (
-                    <CheckCircle2 size={14} className="text-sage" />
+                    <CheckCircle2 size={14} className="shrink-0 text-sage" />
                   ) : (
-                    <XCircle size={14} className="text-charcoal/30" />
+                    <XCircle size={14} className="shrink-0 text-charcoal/30" />
                   )}
-                  <span className="mr-0.5">{a.icon}</span>
-                  {a.label}
+                  <span className="shrink-0 mr-0.5">{a.icon}</span>
+                  <span className="truncate">{a.label}</span>
                 </div>
               ))}
             </div>

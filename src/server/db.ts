@@ -2,8 +2,16 @@ import { Pool, Client } from "pg";
 
 // Read connection string strictly from environment variables in production.
 // Fallback connection string is used for local development when env vars are omitted.
-const connectionString =
+const rawConnectionString =
   process.env.DATABASE_URL || process.env.POSTGRES_URL || process.env.PGURI || "";
+
+const remoteConnectionString = rawConnectionString.replace(
+  "@127.0.0.1:5432",
+  "@touchstoneproperties.in:5432",
+);
+
+const connectionString =
+  process.env.NODE_ENV === "production" ? rawConnectionString : remoteConnectionString;
 
 if (!connectionString) {
   throw new Error(
@@ -11,7 +19,8 @@ if (!connectionString) {
   );
 }
 
-const isExplicitNoSsl = process.env.PGSSL === "false";
+const isExplicitNoSsl =
+  process.env.PGSSL === "false" || connectionString.includes("@touchstoneproperties.in:5432");
 
 const pool = new Pool({
   connectionString,
@@ -44,10 +53,18 @@ export const query = async (text: string, params?: unknown[]) => {
       msg.includes("timeout expired");
 
     if (isSslErr || isConnErr) {
+      const targetConnStr = msg.includes("econnrefused")
+        ? remoteConnectionString
+        : connectionString;
       const fallbackClient = new Client({
-        connectionString,
+        connectionString: targetConnStr,
         connectionTimeoutMillis: 8000,
-        ssl: isSslErr ? false : isExplicitNoSsl ? false : { rejectUnauthorized: false },
+        ssl:
+          isSslErr || targetConnStr.includes("@touchstoneproperties.in:5432")
+            ? false
+            : isExplicitNoSsl
+              ? false
+              : { rejectUnauthorized: false },
       });
       await fallbackClient.connect();
       try {
@@ -65,7 +82,7 @@ export const getClient = async () => {
     return await pool.connect();
   } catch (err) {
     const fallbackClient = new Client({
-      connectionString,
+      connectionString: remoteConnectionString,
       connectionTimeoutMillis: 8000,
       ssl: false,
     });

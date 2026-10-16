@@ -43,8 +43,8 @@ export function PropertyGallery({ images, title }: { images: string[]; title: st
   return (
     <>
       {/* Mobile carousel */}
-      <div className="md:hidden">
-        <Swiper modules={[Pagination]} pagination={{ clickable: true }} className="h-[320px] w-full">
+      <div className="relative overflow-hidden rounded-2xl md:hidden">
+        <Swiper modules={[Pagination]} pagination={{ clickable: true }} className="h-[260px] sm:h-[320px] w-full">
           {safeImages.map((src, i) => (
             <SwiperSlide key={i}>
               <button onClick={() => openAt(i)} className="block h-full w-full">
@@ -53,6 +53,13 @@ export function PropertyGallery({ images, title }: { images: string[]; title: st
             </SwiperSlide>
           ))}
         </Swiper>
+        <button
+          type="button"
+          onClick={() => openAt(0)}
+          className="absolute bottom-3 right-3 z-10 inline-flex items-center gap-1.5 rounded-full bg-black/65 px-3 py-1 text-xs font-medium text-white backdrop-blur-sm"
+        >
+          <Camera size={13} /> {safeImages.length} {safeImages.length === 1 ? "Photo" : "Photos"}
+        </button>
       </div>
 
       {/* Desktop split */}

@@ -599,29 +599,53 @@ export const ABOUT_PAGE_DEFAULTS: AboutPageContent = {
   },
 };
 
-function normalizeAboutPageContent(saved: Partial<AboutPageContent> | null | undefined): AboutPageContent {
+export function normalizeAboutPageContent(saved: Partial<AboutPageContent> | string | null | undefined): AboutPageContent {
+  let parsed: Record<string, any> = {};
+  if (typeof saved === "string") {
+    try {
+      parsed = JSON.parse(saved) ?? {};
+    } catch {
+      parsed = {};
+    }
+  } else if (saved && typeof saved === "object") {
+    parsed = saved as Record<string, any>;
+  }
+
   // Deep-merge per-section so missing keys fall back to defaults
   const out = { ...ABOUT_PAGE_DEFAULTS } as AboutPageContent;
   (Object.keys(ABOUT_PAGE_DEFAULTS) as (keyof AboutPageContent)[]).forEach((k) => {
-    (out as any)[k] = { ...(ABOUT_PAGE_DEFAULTS as any)[k], ...((saved as any)[k] ?? {}) };
+    const defSection = (ABOUT_PAGE_DEFAULTS as any)[k];
+    const savedSection = parsed?.[k] && typeof parsed[k] === "object" ? parsed[k] : {};
+    const merged = { ...defSection, ...savedSection };
+
+    // Ensure array fields inside each section remain valid arrays
+    Object.keys(defSection).forEach((field) => {
+      if (Array.isArray(defSection[field]) && !Array.isArray(merged[field])) {
+        merged[field] = defSection[field];
+      }
+    });
+
+    (out as any)[k] = merged;
   });
   return out;
 }
 
 export async function getAboutPageContent(): Promise<AboutPageContent> {
-  // Read directly via the browser Supabase client so the About Us page never
-  // depends on a server function at request time (which was failing in the
-  // production runtime with the Node 20 / WebSocket transport error).
-  const { data, error } = await supabase
-    .from("site_settings")
-    .select("value")
-    .eq("key", "about_page")
-    .maybeSingle();
-  if (error) {
-    console.warn("[site-cms] about_page read failed:", error.message);
+  try {
+    const { data, error } = await supabase
+      .from("site_settings")
+      .select("value")
+      .eq("key", "about_page")
+      .maybeSingle();
+    if (error) {
+      console.warn("[site-cms] about_page read failed:", error.message);
+      return normalizeAboutPageContent(null);
+    }
+    return normalizeAboutPageContent((data?.value ?? null) as Partial<AboutPageContent> | null);
+  } catch (err) {
+    console.warn("[site-cms] about_page exception:", err);
     return normalizeAboutPageContent(null);
   }
-  return normalizeAboutPageContent((data?.value ?? null) as Partial<AboutPageContent> | null);
 }
 
 export async function updateAboutPageContent(value: AboutPageContent): Promise<AboutPageContent> {

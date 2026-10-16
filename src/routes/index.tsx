@@ -1,19 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { HomePage } from "@/components/HomePage";
-import { getPublicPropertiesFn } from "@/lib/properties.functions";
 
 export const Route = createFileRoute("/")({
-  loader: async ({ context }) => {
-    const { queryClient } = context;
-    await Promise.race([
-      queryClient.prefetchQuery({
-        queryKey: ["public-properties"],
-        queryFn: () => getPublicPropertiesFn(),
-        staleTime: 60_000,
-      }),
-      new Promise((resolve) => setTimeout(resolve, 3000)),
-    ]);
-  },
   head: () => ({
     meta: [
       { title: "Touch Stone Properties — Luxury Real Estate in Bangalore" },
