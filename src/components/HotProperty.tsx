@@ -85,11 +85,11 @@ function HotPropertyCard({ p, settings }: { p: Property; settings?: HotPropertyS
     )}`;
 
   return (
-    <section className="relative overflow-hidden bg-gradient-to-b from-[#FBF9F5] via-white to-[#FBF9F5] py-5 sm:py-8 px-3 sm:px-4 md:px-6 w-full">
+    <section className="relative overflow-hidden bg-gradient-to-b from-[#FBF9F5] via-white to-[#FBF9F5] py-4 sm:py-6 px-3 sm:px-4 md:px-6 w-full">
       {/* Background Orbs & Accents */}
-      <div className="pointer-events-none absolute -top-24 left-1/2 h-72 w-72 -translate-x-1/2 rounded-full bg-gold/10 blur-3xl" />
+      <div className="pointer-events-none absolute -top-24 left-1/2 h-56 w-56 -translate-x-1/2 rounded-full bg-gold/10 blur-3xl" />
 
-      <div className="relative mx-auto w-full max-w-[1100px]">
+      <div className="relative mx-auto w-full max-w-3xl">
         {/* Compact Section Header */}
         <motion.div
           initial={{ y: 0, opacity: 1 }}
@@ -97,10 +97,10 @@ function HotPropertyCard({ p, settings }: { p: Property; settings?: HotPropertyS
           transition={{ duration: 0.5 }}
           className="text-center"
         >
-          <span className="inline-flex items-center gap-1.5 rounded-full border border-gold/40 bg-gold/10 px-3 py-1 text-[10px] sm:text-[11px] font-bold uppercase tracking-[2px] text-[#B8962E]">
-            <Sparkles size={12} className="text-[#B8962E]" /> Exclusive Spotlight
+          <span className="inline-flex items-center gap-1.5 rounded-full border border-gold/40 bg-gold/10 px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-[2px] text-[#B8962E]">
+            <Sparkles size={11} className="text-[#B8962E]" /> Exclusive Spotlight
           </span>
-          <h2 className="mt-1.5 sm:mt-2 font-display text-2xl sm:text-3xl md:text-4xl font-bold text-slate-900 leading-tight">
+          <h2 className="mt-1 font-display text-xl sm:text-2xl md:text-[26px] font-bold text-slate-900 leading-tight">
             Hot Property <span className="italic text-[#B8962E]">of the Week</span>
           </h2>
         </motion.div>
@@ -110,11 +110,11 @@ function HotPropertyCard({ p, settings }: { p: Property; settings?: HotPropertyS
           initial={{ y: 0, opacity: 1 }}
           animate={{ y: 0, opacity: 1 }}
           transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
-          className="group relative mt-4 sm:mt-6 overflow-hidden rounded-2xl sm:rounded-[24px] border border-slate-200/80 bg-white shadow-[0_14px_35px_rgba(15,23,42,0.07)] transition-all duration-500 hover:shadow-[0_20px_50px_rgba(184,150,46,0.14)] hover:border-gold/30"
+          className="group relative mt-3 sm:mt-4 overflow-hidden rounded-2xl border border-slate-200/80 bg-white shadow-[0_10px_28px_rgba(15,23,42,0.06)] transition-all duration-500 hover:shadow-[0_16px_36px_rgba(184,150,46,0.12)] hover:border-gold/30"
         >
-          <div className="grid grid-cols-1 md:grid-cols-12">
-            {/* Left Column — Image */}
-            <div className="relative overflow-hidden md:col-span-6 bg-slate-900">
+          <div className="grid grid-cols-1 md:grid-cols-12 items-stretch">
+            {/* Left Column — Compact Image */}
+            <div className="relative overflow-hidden md:col-span-5 bg-slate-900 h-44 sm:h-48 md:h-[200px]">
               <AnimatePresence mode="wait">
                 <motion.img
                   key={activeImg}
@@ -124,7 +124,7 @@ function HotPropertyCard({ p, settings }: { p: Property; settings?: HotPropertyS
                   animate={{ scale: 1, opacity: 1 }}
                   exit={{ opacity: 0.7 }}
                   transition={{ duration: 0.4 }}
-                  className="h-48 w-full object-cover sm:h-60 md:h-full md:min-h-[260px] transition-transform duration-700 group-hover:scale-105"
+                  className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-105"
                   loading="lazy"
                 />
               </AnimatePresence>
@@ -132,29 +132,29 @@ function HotPropertyCard({ p, settings }: { p: Property; settings?: HotPropertyS
               <div className="absolute inset-0 bg-gradient-to-t from-slate-950/75 via-transparent to-slate-950/30 pointer-events-none" />
 
               {/* Top Left — Hot Deal Badge */}
-              <div className="absolute left-3 top-3 z-10 flex items-center gap-1.5">
-                <span className="inline-flex items-center gap-1 rounded-full bg-gradient-to-r from-[#ff3d00] to-[#ff8a00] px-2.5 py-1 text-[10px] sm:text-[11px] font-extrabold uppercase tracking-wider text-white shadow-md">
-                  <Flame size={12} className="fill-white" /> {badge}
+              <div className="absolute left-2.5 top-2.5 z-10 flex items-center gap-1.5">
+                <span className="inline-flex items-center gap-1 rounded-full bg-gradient-to-r from-[#ff3d00] to-[#ff8a00] px-2 py-0.5 text-[10px] font-extrabold uppercase tracking-wider text-white shadow-md">
+                  <Flame size={11} className="fill-white" /> {badge}
                 </span>
-                <span className="rounded-full bg-slate-950/75 px-2.5 py-1 text-[10px] font-semibold text-white backdrop-blur-md border border-white/10">
+                <span className="rounded-full bg-slate-950/75 px-2 py-0.5 text-[10px] font-semibold text-white backdrop-blur-md border border-white/10">
                   {propertyType}
                 </span>
               </div>
 
               {/* Top Right — Wishlist */}
-              <div className="absolute right-3 top-3 z-10 flex items-center gap-1.5">
+              <div className="absolute right-2.5 top-2.5 z-10 flex items-center gap-1.5">
                 <button
                   type="button"
                   onClick={() => toggle(p.id)}
                   aria-label={liked ? "Remove from wishlist" : "Add to wishlist"}
-                  className="grid h-8 w-8 sm:h-9 sm:w-9 place-items-center rounded-full bg-white/95 text-slate-800 shadow-md backdrop-blur-md transition hover:scale-110"
+                  className="grid h-7 w-7 sm:h-8 sm:w-8 place-items-center rounded-full bg-white/95 text-slate-800 shadow-md backdrop-blur-md transition hover:scale-110"
                 >
-                  <Heart className={`h-4 w-4 ${liked ? "fill-rose-500 text-rose-500" : "text-slate-700"}`} />
+                  <Heart className={`h-3.5 w-3.5 ${liked ? "fill-rose-500 text-rose-500" : "text-slate-700"}`} />
                 </button>
               </div>
 
               {/* Bottom Thumbnails & Status */}
-              <div className="absolute bottom-2.5 inset-x-3 z-10 flex items-center justify-between gap-2">
+              <div className="absolute bottom-2 inset-x-2.5 z-10 flex items-center justify-between gap-2">
                 {galleryImages.length > 1 ? (
                   <div className="flex items-center gap-1 rounded-lg bg-slate-950/65 p-1 backdrop-blur-md border border-white/10">
                     {galleryImages.map((imgUrl, idx) => (
@@ -163,7 +163,7 @@ function HotPropertyCard({ p, settings }: { p: Property; settings?: HotPropertyS
                         type="button"
                         onClick={() => setActiveImg(imgUrl)}
                         aria-label={`View photo ${idx + 1}`}
-                        className={`relative h-7 w-9 sm:h-8 sm:w-11 overflow-hidden rounded-md border transition-all ${
+                        className={`relative h-6 w-8 overflow-hidden rounded border transition-all ${
                           activeImg === imgUrl ? "border-gold scale-105" : "border-transparent opacity-70 hover:opacity-100"
                         }`}
                       >
@@ -175,14 +175,14 @@ function HotPropertyCard({ p, settings }: { p: Property; settings?: HotPropertyS
                   <div />
                 )}
 
-                <span className="shrink-0 rounded-full bg-emerald-500/90 px-2.5 py-0.5 text-[10px] font-bold text-white backdrop-blur-md shadow-xs">
+                <span className="shrink-0 rounded-full bg-emerald-500/90 px-2 py-0.5 text-[9.5px] font-bold text-white backdrop-blur-md shadow-xs">
                   {p.possession || "Ready to Move"}
                 </span>
               </div>
             </div>
 
             {/* Right Column — Compact Name & Small Details */}
-            <div className="flex flex-col justify-between p-3.5 sm:p-5 md:col-span-6 md:p-6">
+            <div className="flex flex-col justify-between p-3.5 sm:p-4 md:col-span-7 md:px-5 md:py-3.5">
               <div>
                 {/* Builder & Verified Tag */}
                 <div className="flex items-center justify-between gap-2">

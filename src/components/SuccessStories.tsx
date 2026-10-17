@@ -60,7 +60,7 @@ function StoryImageCollage({ images, title }: { images: string[]; title: string 
     : [FALLBACK_PROPERTY_IMAGE];
   const [main, s1, s2] = [safeImages[0], safeImages[1] ?? safeImages[0], safeImages[2] ?? safeImages[1] ?? safeImages[0]];
   return (
-    <div className="grid grid-cols-3 grid-rows-2 gap-2 h-64 sm:h-72">
+    <div className="grid grid-cols-3 grid-rows-2 gap-2 h-48 sm:h-52">
       <div className="col-span-2 row-span-2 overflow-hidden rounded-2xl ring-1 ring-amber-300/40">
         <img
           src={main}
@@ -152,21 +152,21 @@ export function SuccessStories() {
   const stories: SuccessStory[] = items.length > 0 ? items.map(mapDbStory) : fallbackStories;
 
   return (
-    <section className="relative bg-white py-8 sm:py-12">
+    <section className="relative bg-white py-6 sm:py-8">
       <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-amber-300/50 to-transparent" />
 
-      <div className="w-full mx-auto px-5 sm:px-8">
+      <div className="w-full max-w-6xl mx-auto px-4 sm:px-6">
         <motion.div
           initial={{ y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.6 }}
-          className="text-center max-w-3xl mx-auto"
+          className="text-center max-w-2xl mx-auto"
         >
-          <span className="inline-flex items-center gap-2 rounded-full border border-amber-300/60 bg-amber-50/50 px-4 py-1.5 text-[11px] uppercase tracking-[0.22em] text-amber-700 font-semibold">
+          <span className="inline-flex items-center gap-2 rounded-full border border-amber-300/60 bg-amber-50/50 px-3.5 py-1 text-[10px] uppercase tracking-[0.22em] text-amber-700 font-semibold">
             Real Client Journeys
           </span>
-          <h2 className="mt-5 text-4xl sm:text-5xl font-serif text-[#0a1f44] leading-tight">
+          <h2 className="mt-2.5 text-2xl sm:text-3xl font-serif text-[#0a1f44] leading-tight">
             Success <span className="italic text-amber-600">Stories</span>
           </h2>
           <motion.div
@@ -174,15 +174,15 @@ export function SuccessStories() {
             whileInView={{ scaleX: 1 }}
             viewport={{ once: true }}
             transition={{ duration: 0.9, delay: 0.2, ease: "easeOut" }}
-            className="mx-auto mt-4 h-[2px] w-24 origin-left bg-gradient-to-r from-amber-400 via-amber-500 to-amber-300"
+            className="mx-auto mt-2.5 h-[2px] w-20 origin-left bg-gradient-to-r from-amber-400 via-amber-500 to-amber-300"
           />
-          <p className="mt-5 text-slate-600 leading-relaxed">
+          <p className="mt-2.5 text-xs sm:text-sm text-slate-600 leading-relaxed">
             Real property journeys where Touchstone Properties helped clients buy, sell,
             and rent the right property with confidence.
           </p>
         </motion.div>
 
-        <div className="mt-14 grid gap-6 sm:gap-8 md:grid-cols-2 lg:grid-cols-3">
+        <div className="mt-7 grid gap-5 sm:gap-6 md:grid-cols-2 lg:grid-cols-3">
           {stories.map((story, i) => (
             <SuccessStoryCard key={story.id} story={story} index={i} />
           ))}

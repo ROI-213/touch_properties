@@ -211,7 +211,7 @@ function SinglePropertyCard({ p }: { p: Property; onOpen: () => void }) {
   return (
     <article className="group flex flex-col justify-between overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm transition-all duration-300 hover:shadow-xl hover:border-violet-300">
       {/* Top Image Box */}
-      <div className="relative h-[145px] sm:h-[200px] w-full overflow-hidden bg-slate-100">
+      <div className="relative h-[145px] sm:h-[155px] md:h-[160px] w-full overflow-hidden bg-slate-100">
         <img
           src={resolveLocalImage(p.heroImage, FALLBACK_PROPERTY_IMAGE)}
           alt={p.projectName}
@@ -697,32 +697,32 @@ export function Top10Properties() {
   );
 
   return (
-    <section className="relative overflow-hidden bg-gradient-to-b from-white via-violet-50/30 to-white py-6 sm:py-12">
-      <div className="pointer-events-none absolute -top-32 left-1/2 h-96 w-96 -translate-x-1/2 rounded-full bg-violet-200/40 blur-3xl" />
+    <section className="relative overflow-hidden bg-gradient-to-b from-white via-violet-50/30 to-white py-5 sm:py-7">
+      <div className="pointer-events-none absolute -top-32 left-1/2 h-72 w-72 -translate-x-1/2 rounded-full bg-violet-200/40 blur-3xl" />
 
-      <div className="relative mx-auto w-full px-3 sm:px-5 md:px-8 lg:px-10">
+      <div className="relative mx-auto w-full max-w-4xl px-3 sm:px-5 md:px-6">
         <motion.div
           initial={{ opacity: 1, y: 0 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6 }}
           className="text-center"
         >
-          <span className="inline-flex items-center gap-1.5 rounded-full bg-white px-3.5 py-1.5 text-[10px] sm:text-[11px] font-bold uppercase tracking-[2.5px] text-violet-700 shadow-[0_6px_18px_rgba(109,40,217,0.12)] ring-1 ring-violet-200">
-            <Sparkles size={12} /> Top 10
+          <span className="inline-flex items-center gap-1.5 rounded-full bg-white px-3 py-1 text-[10px] font-bold uppercase tracking-[2.5px] text-violet-700 shadow-[0_6px_18px_rgba(109,40,217,0.12)] ring-1 ring-violet-200">
+            <Sparkles size={11} /> Top 10
           </span>
           <h2
-            className="mt-2.5 sm:mt-3 text-2xl sm:text-[40px] lg:text-[46px] font-bold leading-tight text-slate-900"
+            className="mt-2 text-xl sm:text-2xl lg:text-3xl font-bold leading-tight text-slate-900"
             style={{ fontFamily: "'Playfair Display', serif" }}
           >
             {heading.title}
           </h2>
-          <p className="hidden sm:block mx-auto mt-2 max-w-2xl text-sm sm:text-base leading-relaxed text-slate-600 px-2">
+          <p className="hidden sm:block mx-auto mt-1 max-w-xl text-xs sm:text-sm leading-relaxed text-slate-600 px-2">
             {heading.subtitle}
           </p>
         </motion.div>
 
         <div
-          className="relative mt-4 sm:mt-8 [overflow-anchor:none]"
+          className="relative mt-4 sm:mt-5 [overflow-anchor:none]"
           onMouseEnter={() => setPaused(true)}
           onMouseLeave={() => setPaused(false)}
           onTouchStart={onTouchStart}
@@ -736,7 +736,7 @@ export function Top10Properties() {
                 animate={{ opacity: 1, x: 0 }}
                 exit={{ opacity: 0, x: -40 }}
                 transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
-                className="grid grid-cols-1 md:grid-cols-2 gap-3.5 sm:gap-6"
+                className="grid grid-cols-1 md:grid-cols-2 gap-3.5 sm:gap-4"
               >
                 {isLoading
                   ? Array.from({ length: chunkSize }).map((_, i) => <Top10PropertyCardSkeleton key={i} />)

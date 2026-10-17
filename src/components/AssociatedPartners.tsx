@@ -33,8 +33,8 @@ const FALLBACK: Partner[] = [
 
 function LogoCard({ name, logo }: Partner) {
   return (
-    <div className="mx-3 flex h-[110px] w-[150px] shrink-0 items-center justify-center rounded-2xl border border-[#E5EAF0] bg-white px-4 transition duration-300 hover:-translate-y-1 hover:shadow-[0_14px_36px_rgba(15,31,68,0.10)] md:h-[135px] md:w-[170px] md:px-5">
-      <img src={logo} alt={name} loading="lazy" className="max-h-[70%] max-w-[80%] object-contain" />
+    <div className="mx-2.5 flex h-[90px] w-[135px] shrink-0 items-center justify-center rounded-2xl border border-[#E5EAF0] bg-white px-3.5 transition duration-300 hover:-translate-y-1 hover:shadow-[0_14px_36px_rgba(15,31,68,0.10)] md:h-[95px] md:w-[145px] md:px-4">
+      <img src={logo} alt={name} loading="lazy" className="max-h-[68%] max-w-[78%] object-contain" />
     </div>
   );
 }
@@ -75,34 +75,34 @@ export function AssociatedPartners() {
 
 
   return (
-    <section className="relative w-full bg-[#FBF8F2] py-6 md:py-8" id="associated-partners" aria-label="Associated Partners">
-      <div className="w-full px-2 sm:px-4 md:px-6">
-        <div className="w-full rounded-[24px] sm:rounded-[28px] border border-[#E5EAF0] bg-white px-4 py-8 shadow-[0_18px_50px_rgba(15,31,68,0.06)] sm:px-8 md:px-12 md:py-10">
-          <div className="mx-auto max-w-3xl text-center">
-            <span className="inline-flex items-center gap-2 text-[11px] font-bold uppercase tracking-[3px] text-[#C8A34D]">
-              <span className="h-px w-8 bg-[#C8A34D]" />
+    <section className="relative w-full bg-[#FBF8F2] py-4 md:py-6" id="associated-partners" aria-label="Associated Partners">
+      <div className="mx-auto w-full max-w-6xl px-2 sm:px-4 md:px-6">
+        <div className="w-full rounded-[24px] border border-[#E5EAF0] bg-white px-4 py-6 shadow-[0_14px_36px_rgba(15,31,68,0.05)] sm:px-6 md:px-8 md:py-7">
+          <div className="mx-auto max-w-2xl text-center">
+            <span className="inline-flex items-center gap-2 text-[10px] font-bold uppercase tracking-[3px] text-[#C8A34D]">
+              <span className="h-px w-6 bg-[#C8A34D]" />
               {section.small_label}
-              <span className="h-px w-8 bg-[#C8A34D]" />
+              <span className="h-px w-6 bg-[#C8A34D]" />
             </span>
-            <h2 className="mt-4 text-3xl font-bold text-[#0F1F44] md:text-[40px]" style={{ fontFamily: "'Playfair Display', serif" }}>
+            <h2 className="mt-2 text-2xl font-bold text-[#0F1F44] md:text-3xl" style={{ fontFamily: "'Playfair Display', serif" }}>
               {section.heading}
             </h2>
-            <p className="mx-auto mt-3 max-w-2xl text-[14px] leading-relaxed text-[#0F1F44]/65 md:text-[15px]">
+            <p className="mx-auto mt-1.5 max-w-xl text-xs leading-relaxed text-[#0F1F44]/65 md:text-sm">
               {section.subtitle}
             </p>
           </div>
 
-          <div className="relative mt-10 md:mt-12">
-            <div className="pointer-events-none absolute inset-y-0 left-0 z-10 w-12 bg-gradient-to-r from-white to-transparent md:w-24" />
-            <div className="pointer-events-none absolute inset-y-0 right-0 z-10 w-12 bg-gradient-to-l from-white to-transparent md:w-24" />
-            <div className="space-y-5 md:space-y-6">
+          <div className="relative mt-6 md:mt-7">
+            <div className="pointer-events-none absolute inset-y-0 left-0 z-10 w-10 bg-gradient-to-r from-white to-transparent md:w-16" />
+            <div className="pointer-events-none absolute inset-y-0 right-0 z-10 w-10 bg-gradient-to-l from-white to-transparent md:w-16" />
+            <div className="space-y-3.5 md:space-y-4">
               <MarqueeRow partners={rowOne} direction="left" />
               {rowTwo.length > 0 && <MarqueeRow partners={rowTwo} direction="right" />}
             </div>
           </div>
 
           {section.bottom_quote && (
-            <p className="mx-auto mt-10 max-w-3xl text-center text-[13px] italic leading-relaxed text-[#0F1F44]/60 md:mt-12 md:text-[14px]">
+            <p className="mx-auto mt-5 max-w-2xl text-center text-xs italic leading-relaxed text-[#0F1F44]/60 md:mt-6">
               “{section.bottom_quote}”
             </p>
           )}

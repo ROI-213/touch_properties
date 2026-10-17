@@ -274,50 +274,42 @@ export function FeaturedProperties() {
         </div>
       </section>
 
-      {/* DESKTOP VIEW (md: and above): 4-column grid showing latest 12 with View All button */}
-      <section className="hidden md:block bg-ivory px-4 sm:px-6 lg:px-8 py-12 md:py-16 w-full">
-        <div className="w-full">
-          <motion.div
-            initial={{ opacity: 1, y: 0 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="text-center"
-          >
-            <div className="mx-auto mb-6 h-px w-10 bg-gold" />
-            <h2 className="font-display text-[40px] md:text-[50px] font-bold text-charcoal">
-              {heading.title}
-            </h2>
-            <p className="mt-2 text-base text-charcoal/60">
-              {heading.subtitle}
-            </p>
-          </motion.div>
+      {/* DESKTOP VIEW (md: and above): Compact 4-column grid showing latest 12 with View All button */}
+      <section className="hidden md:block bg-[#FAF8F5] px-4 sm:px-6 py-6 md:py-8 w-full">
+        <div className="mx-auto max-w-6xl rounded-3xl bg-white p-6 lg:p-7 shadow-sm border border-slate-200/60">
+          <div className="flex flex-wrap items-center justify-between gap-4 border-b border-slate-100 pb-4">
+            <div>
+              <h2 className="font-display text-2xl lg:text-3xl font-bold text-slate-900">
+                {heading.title}
+              </h2>
+              <p className="mt-0.5 text-xs lg:text-sm text-slate-500">
+                {heading.subtitle}
+              </p>
+            </div>
 
-          <div className="mt-10 flex flex-wrap items-center justify-between gap-4 border-b border-charcoal/10">
-            <div className="flex flex-wrap gap-8">
+            <div className="flex flex-wrap items-center gap-2">
               {tabs.map((t) => (
                 <button
                   key={t}
+                  type="button"
                   onClick={() => setTab(t)}
-                  className={`relative pb-3 text-sm font-medium transition-colors ${
-                    tab === t ? "text-charcoal" : "text-charcoal/50 hover:text-charcoal/80"
+                  className={`rounded-full px-3.5 py-1.5 text-xs font-semibold transition-all ${
+                    tab === t
+                      ? "bg-[#B8962E] text-white shadow-2xs"
+                      : "bg-slate-100 text-slate-600 hover:bg-slate-200"
                   }`}
                 >
                   {t}
-                  {tab === t && (
-                    <motion.div
-                      layoutId="feat-tab-desktop"
-                      className="absolute inset-x-0 -bottom-px h-[2px] bg-gold"
-                    />
-                  )}
                 </button>
               ))}
+              <Link
+                to="/buy-properties/$type"
+                params={{ type: "all" }}
+                className="ml-2 inline-flex items-center gap-1 text-xs font-bold text-[#B8962E] transition-colors hover:underline"
+              >
+                View All <ArrowRight size={14} />
+              </Link>
             </div>
-            <Link
-              to="/buy-properties/$type"
-              params={{ type: "all" }}
-              className="mb-2 inline-flex items-center gap-1.5 text-sm font-semibold text-gold transition-colors hover:text-charcoal"
-            >
-              View All Properties <ArrowRight size={15} />
-            </Link>
           </div>
 
           <AnimatePresence mode="wait">
@@ -327,7 +319,7 @@ export function FeaturedProperties() {
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               transition={{ duration: 0.3 }}
-              className="mt-10 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6"
+              className="mt-5 grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4"
             >
               {isLoading
                 ? Array.from({ length: 4 }).map((_, i) => <PropertyCardSkeleton key={i} />)
@@ -335,13 +327,13 @@ export function FeaturedProperties() {
             </motion.div>
           </AnimatePresence>
 
-          <div className="mt-12 text-center">
+          <div className="mt-6 text-center">
             <Link
               to="/buy-properties/$type"
               params={{ type: "all" }}
-              className="inline-flex h-12 px-8 items-center justify-center gap-2 rounded-full border-[1.5px] border-gold text-sm font-semibold text-gold transition-all hover:bg-gold hover:text-white"
+              className="inline-flex h-10 px-6 items-center justify-center gap-2 rounded-full border-[1.5px] border-gold text-xs font-bold text-gold transition-all hover:bg-gold hover:text-white"
             >
-              View All Properties <ArrowRight size={16} />
+              View All Properties <ArrowRight size={14} />
             </Link>
           </div>
         </div>

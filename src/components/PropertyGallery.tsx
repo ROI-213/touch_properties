@@ -74,7 +74,7 @@ export function PropertyGallery({ images, title }: { images: string[]; title: st
         <div className="hidden md:block">
           <button
             onClick={() => openAt(0)}
-            className="group relative block h-[520px] w-full overflow-hidden rounded-xl"
+            className="group relative mx-auto block h-[300px] lg:h-[340px] w-full max-w-3xl overflow-hidden rounded-2xl border border-slate-200/70 bg-slate-900/5 shadow-sm"
           >
             <img
               src={safeImages[0]}
@@ -84,10 +84,10 @@ export function PropertyGallery({ images, title }: { images: string[]; title: st
           </button>
         </div>
       ) : (
-        <div className="hidden gap-3 md:grid md:grid-cols-[62%_1fr]">
+        <div className="hidden gap-3 md:grid md:grid-cols-[60%_1fr]">
           <button
             onClick={() => openAt(0)}
-            className="group relative h-[520px] overflow-hidden rounded-xl"
+            className="group relative h-[320px] lg:h-[360px] overflow-hidden rounded-xl"
           >
             <img
               src={safeImages[0]}
@@ -96,7 +96,7 @@ export function PropertyGallery({ images, title }: { images: string[]; title: st
             />
           </button>
           <div
-            className={`grid h-[520px] gap-3 ${
+            className={`grid h-[320px] lg:h-[360px] gap-3 ${
               thumbs.length === 1
                 ? "grid-cols-1 grid-rows-1"
                 : thumbs.length === 2
