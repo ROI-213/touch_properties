@@ -10,10 +10,9 @@ export default defineConfig({
   tanstackStart: {
     server: { entry: "server" },
   },
-  nitro: {
-    preset:
-      process.env.NITRO_PRESET || (process.env.VERCEL ? "vercel" : "node-server"),
-  },
+  ...(process.env.NITRO_PRESET
+    ? { nitro: { preset: process.env.NITRO_PRESET } }
+    : {}),
   vite: {
     server: {
       host: "::",
