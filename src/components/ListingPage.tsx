@@ -34,7 +34,7 @@ interface Props {
   initialQuery?: string;
 }
 
-const PAGE_SIZE = 9;
+const PAGE_SIZE = 12;
 
 const TYPE_OPTIONS = [
   { key: "Apartment", label: "Apartment", icon: Building2, emoji: "🏢" },
@@ -112,8 +112,11 @@ export function ListingPage({ listingType, type, initialQuery = "" }: Props) {
   );
 
   const baseList = useMemo(
-    () => liveProperties.filter((p) => p.listingType === listingType),
-    [liveProperties, listingType],
+    () =>
+      type === "all"
+        ? liveProperties
+        : liveProperties.filter((p) => p.listingType === listingType),
+    [liveProperties, listingType, type],
   );
 
   const maxBudget = useMemo(() => {
@@ -173,7 +176,7 @@ export function ListingPage({ listingType, type, initialQuery = "" }: Props) {
         const bhkStr = p.bhk >= 4 ? (p.bhk > 4 ? "4+" : "4") : String(p.bhk);
         if (!filters.bhks.includes(bhkStr)) return false;
       }
-      if (p.sqft < filters.minSqft || p.sqft > filters.maxSqft) return false;
+      if (p.sqft < filters.minSqft || (filters.maxSqft < 10000 && p.sqft > filters.maxSqft)) return false;
       if (
         filters.builder &&
         !p.builder.toLowerCase().includes(filters.builder.toLowerCase())

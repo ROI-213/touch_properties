@@ -13,7 +13,7 @@ export const getPublicPropertiesFn = createServerFn({ method: "GET" })
                (SELECT coalesce(json_agg(row_to_json(img)), '[]') FROM (SELECT url, image_type FROM property_images WHERE property_id = p.id) img) as property_images
         FROM properties p
         WHERE is_active = true
-        ORDER BY display_order ASC, created_at DESC
+        ORDER BY created_at DESC, display_order ASC
       `;
       const dbPromise = dbQuery(sql, []);
       const timeoutPromise = new Promise<never>((_, reject) =>

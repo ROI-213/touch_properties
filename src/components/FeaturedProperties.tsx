@@ -178,33 +178,36 @@ export function FeaturedProperties() {
       seen.add(titleKey);
       return true;
     });
-    return unique.filter((p) => {
+    const sorted = [...unique].sort((a, b) =>
+      (b.createdAt ?? "").localeCompare(a.createdAt ?? "")
+    );
+    return sorted.filter((p) => {
       if (tab === "Premium Properties") return p.premium;
       if (tab === "Trending") return p.trending;
       return true;
     });
   }, [dbProps, tab]);
 
-  const mobileList = useMemo(() => {
-    return list.slice(0, 5);
+  const latestTwelve = useMemo(() => {
+    return list.slice(0, 12);
   }, [list]);
 
   return (
     <>
-      {/* MOBILE VIEW (< md): Horizontal project cards matching reference image */}
+      {/* MOBILE VIEW (< md): Horizontal project cards showing latest 12 */}
       <section className="block md:hidden relative bg-[#FAF8F5] py-6 px-3 sm:px-4">
         <div className="mx-auto max-w-4xl rounded-3xl bg-white p-4 sm:p-5 shadow-sm border border-slate-200/60">
           {/* Top Header */}
           <div className="flex items-center justify-between gap-3 border-b border-slate-100 pb-3.5">
             <h2 className="font-display text-xl sm:text-2xl font-bold text-slate-900">
-              Featured Projects
+              Featured Properties
             </h2>
             <Link
               to="/buy-properties/$type"
               params={{ type: "all" }}
               className="inline-flex shrink-0 items-center gap-1 text-xs font-semibold text-[#B8962E] hover:underline"
             >
-              View All <ArrowRight size={14} />
+              View All Properties <ArrowRight size={14} />
             </Link>
           </div>
 
@@ -226,22 +229,33 @@ export function FeaturedProperties() {
             ))}
           </div>
 
-          {/* Project List */}
+          {/* Project List (Latest 12) */}
           <div className="mt-4 flex flex-col gap-3.5">
             {isLoading
-              ? Array.from({ length: 3 }).map((_, i) => <FeaturedProjectCardSkeleton key={i} />)
-              : mobileList.map((p) => <FeaturedProjectCard key={p.id} p={p} />)}
+              ? Array.from({ length: 4 }).map((_, i) => <FeaturedProjectCardSkeleton key={i} />)
+              : latestTwelve.map((p) => <FeaturedProjectCard key={p.id} p={p} />)}
+          </div>
+
+          {/* View All Properties Button (Mobile) */}
+          <div className="mt-5 text-center">
+            <Link
+              to="/buy-properties/$type"
+              params={{ type: "all" }}
+              className="inline-flex h-11 w-full items-center justify-center gap-2 rounded-full border-[1.5px] border-[#B8962E] bg-[#B8962E]/5 px-6 text-xs font-bold text-[#B8962E] transition-all hover:bg-[#B8962E] hover:text-white"
+            >
+              View All Properties <ArrowRight size={14} />
+            </Link>
           </div>
 
           {/* RERA Footer */}
-          <div className="mt-5 flex items-center justify-center gap-1.5 text-xs font-semibold text-slate-500 border-t border-slate-100 pt-4">
+          <div className="mt-4 flex items-center justify-center gap-1.5 text-xs font-semibold text-slate-500 border-t border-slate-100 pt-4">
             <ShieldCheck size={15} className="text-[#B8962E]" />
             <span>RERA Registered Projects</span>
           </div>
         </div>
       </section>
 
-      {/* DESKTOP VIEW (md: and above): Original 4-card grid section with tabs */}
+      {/* DESKTOP VIEW (md: and above): 4-column grid showing latest 12 with View All button */}
       <section className="hidden md:block bg-ivory px-4 sm:px-6 lg:px-8 py-12 md:py-16 w-full">
         <div className="w-full">
           <motion.div
@@ -258,24 +272,33 @@ export function FeaturedProperties() {
             </p>
           </motion.div>
 
-          <div className="mt-10 flex flex-wrap justify-center gap-8 border-b border-charcoal/10">
-            {tabs.map((t) => (
-              <button
-                key={t}
-                onClick={() => setTab(t)}
-                className={`relative pb-3 text-sm font-medium transition-colors ${
-                  tab === t ? "text-charcoal" : "text-charcoal/50 hover:text-charcoal/80"
-                }`}
-              >
-                {t}
-                {tab === t && (
-                  <motion.div
-                    layoutId="feat-tab-desktop"
-                    className="absolute inset-x-0 -bottom-px h-[2px] bg-gold"
-                  />
-                )}
-              </button>
-            ))}
+          <div className="mt-10 flex flex-wrap items-center justify-between gap-4 border-b border-charcoal/10">
+            <div className="flex flex-wrap gap-8">
+              {tabs.map((t) => (
+                <button
+                  key={t}
+                  onClick={() => setTab(t)}
+                  className={`relative pb-3 text-sm font-medium transition-colors ${
+                    tab === t ? "text-charcoal" : "text-charcoal/50 hover:text-charcoal/80"
+                  }`}
+                >
+                  {t}
+                  {tab === t && (
+                    <motion.div
+                      layoutId="feat-tab-desktop"
+                      className="absolute inset-x-0 -bottom-px h-[2px] bg-gold"
+                    />
+                  )}
+                </button>
+              ))}
+            </div>
+            <Link
+              to="/buy-properties/$type"
+              params={{ type: "all" }}
+              className="mb-2 inline-flex items-center gap-1.5 text-sm font-semibold text-gold transition-colors hover:text-charcoal"
+            >
+              View All Properties <ArrowRight size={15} />
+            </Link>
           </div>
 
           <AnimatePresence mode="wait">
@@ -289,7 +312,7 @@ export function FeaturedProperties() {
             >
               {isLoading
                 ? Array.from({ length: 4 }).map((_, i) => <PropertyCardSkeleton key={i} />)
-                : list.map((p, i) => <PropertyCard key={p.id} p={p} index={i} />)}
+                : latestTwelve.map((p, i) => <PropertyCard key={p.id} p={p} index={i} />)}
             </motion.div>
           </AnimatePresence>
 
@@ -297,9 +320,9 @@ export function FeaturedProperties() {
             <Link
               to="/buy-properties/$type"
               params={{ type: "all" }}
-              className="inline-flex h-12 w-[200px] items-center justify-center rounded-full border-[1.5px] border-gold text-sm font-medium text-gold transition-all hover:bg-gold hover:text-white"
+              className="inline-flex h-12 px-8 items-center justify-center gap-2 rounded-full border-[1.5px] border-gold text-sm font-semibold text-gold transition-all hover:bg-gold hover:text-white"
             >
-              View All Properties →
+              View All Properties <ArrowRight size={16} />
             </Link>
           </div>
         </div>
