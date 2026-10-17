@@ -664,7 +664,7 @@ function HeroCarousel() {
 
 export function Hero() {
   return (
-    <section className="relative mx-auto w-full max-w-6xl px-2 pt-[70px] sm:px-4 sm:pt-[76px]">
+    <section className="relative w-full px-2 pt-[70px] sm:px-4 sm:pt-[76px]">
       <motion.div
         initial={false}
         animate={{ opacity: 1, y: 0 }}

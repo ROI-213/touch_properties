@@ -76,7 +76,7 @@ export function AssociatedPartners() {
 
   return (
     <section className="relative w-full bg-[#FBF8F2] py-4 md:py-6" id="associated-partners" aria-label="Associated Partners">
-      <div className="mx-auto w-full max-w-6xl px-2 sm:px-4 md:px-6">
+      <div className="w-full px-2 sm:px-4">
         <div className="w-full rounded-[24px] border border-[#E5EAF0] bg-white px-4 py-6 shadow-[0_14px_36px_rgba(15,31,68,0.05)] sm:px-6 md:px-8 md:py-7">
           <div className="mx-auto max-w-2xl text-center">
             <span className="inline-flex items-center gap-2 text-[10px] font-bold uppercase tracking-[3px] text-[#C8A34D]">

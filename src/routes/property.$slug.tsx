@@ -286,12 +286,12 @@ function PropertyPage() {
       <div className="pt-20" />
 
       {/* Gallery */}
-      <section className="mx-auto w-full max-w-6xl px-4 lg:px-6">
+      <section className="mx-auto w-full px-2 sm:px-4">
         <PropertyGallery images={gallery} title={p.title} />
       </section>
 
       {/* Main 70/30 */}
-      <div className="mx-auto mt-6 grid w-full max-w-6xl grid-cols-1 gap-6 px-4 lg:grid-cols-[1fr_340px] lg:px-6">
+      <div className="mx-auto mt-6 grid w-full grid-cols-1 gap-6 px-2 sm:px-4 lg:grid-cols-[1fr_340px]">
         {/* LEFT */}
         <div>
           {/* Heading block */}

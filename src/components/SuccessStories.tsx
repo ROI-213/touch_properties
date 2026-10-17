@@ -155,7 +155,7 @@ export function SuccessStories() {
     <section className="relative bg-white py-6 sm:py-8">
       <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-amber-300/50 to-transparent" />
 
-      <div className="w-full max-w-6xl mx-auto px-4 sm:px-6">
+      <div className="w-full mx-auto px-2 sm:px-4">
         <motion.div
           initial={{ y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}

@@ -74,7 +74,7 @@ export function PropertyGallery({ images, title }: { images: string[]; title: st
         <div className="hidden md:block">
           <button
             onClick={() => openAt(0)}
-            className="group relative mx-auto block h-[300px] lg:h-[340px] w-full max-w-3xl overflow-hidden rounded-2xl border border-slate-200/70 bg-slate-900/5 shadow-sm"
+            className="group relative mx-auto block h-[320px] lg:h-[360px] w-full overflow-hidden rounded-2xl border border-slate-200/70 bg-slate-900/5 shadow-sm"
           >
             <img
               src={safeImages[0]}

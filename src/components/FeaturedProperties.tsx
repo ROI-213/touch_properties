@@ -275,8 +275,8 @@ export function FeaturedProperties() {
       </section>
 
       {/* DESKTOP VIEW (md: and above): Compact 4-column grid showing latest 12 with View All button */}
-      <section className="hidden md:block bg-[#FAF8F5] px-4 sm:px-6 py-6 md:py-8 w-full">
-        <div className="mx-auto max-w-6xl rounded-3xl bg-white p-6 lg:p-7 shadow-sm border border-slate-200/60">
+      <section className="hidden md:block bg-[#FAF8F5] px-2 sm:px-4 py-6 md:py-8 w-full">
+        <div className="w-full rounded-3xl bg-white p-6 lg:p-7 shadow-sm border border-slate-200/60">
           <div className="flex flex-wrap items-center justify-between gap-4 border-b border-slate-100 pb-4">
             <div>
               <h2 className="font-display text-2xl lg:text-3xl font-bold text-slate-900">

@@ -225,7 +225,7 @@ function StatsPanel() {
   const { content } = useAboutContent();
   const stats = content.stats;
   return (
-    <div className="w-full flex items-center px-4 sm:px-8 lg:px-24">
+    <div className="w-full flex items-center px-2 sm:px-4">
       <div className="w-full mx-auto">
         <div className="text-center mb-8 sm:mb-14">
           <span className="text-xs tracking-[0.4em] text-[#c9a961] font-medium">— BY THE NUMBERS</span>
@@ -321,7 +321,7 @@ function JourneyPanel() {
   }, [paused, journeys.length]);
 
   return (
-    <div className="w-full flex items-center px-4 sm:px-8 lg:px-24">
+    <div className="w-full flex items-center px-2 sm:px-4">
       <div className="w-full mx-auto">
         <div className="text-center mb-6 sm:mb-10">
           <span className="text-xs tracking-[0.4em] text-[#c9a961] font-medium">— YOUR JOURNEY</span>

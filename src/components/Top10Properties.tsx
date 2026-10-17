@@ -700,7 +700,7 @@ export function Top10Properties() {
     <section className="relative overflow-hidden bg-gradient-to-b from-white via-violet-50/30 to-white py-5 sm:py-7">
       <div className="pointer-events-none absolute -top-32 left-1/2 h-72 w-72 -translate-x-1/2 rounded-full bg-violet-200/40 blur-3xl" />
 
-      <div className="relative mx-auto w-full max-w-4xl px-3 sm:px-5 md:px-6">
+      <div className="relative mx-auto w-full px-2 sm:px-4">
         <motion.div
           initial={{ opacity: 1, y: 0 }}
           animate={{ opacity: 1, y: 0 }}

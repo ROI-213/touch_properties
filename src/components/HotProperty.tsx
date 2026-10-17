@@ -85,11 +85,11 @@ function HotPropertyCard({ p, settings }: { p: Property; settings?: HotPropertyS
     )}`;
 
   return (
-    <section className="relative overflow-hidden bg-gradient-to-b from-[#FBF9F5] via-white to-[#FBF9F5] py-4 sm:py-6 px-3 sm:px-4 md:px-6 w-full">
+    <section className="relative overflow-hidden bg-gradient-to-b from-[#FBF9F5] via-white to-[#FBF9F5] py-4 sm:py-6 px-2 sm:px-4 w-full">
       {/* Background Orbs & Accents */}
       <div className="pointer-events-none absolute -top-24 left-1/2 h-56 w-56 -translate-x-1/2 rounded-full bg-gold/10 blur-3xl" />
 
-      <div className="relative mx-auto w-full max-w-3xl">
+      <div className="relative mx-auto w-full">
         {/* Compact Section Header */}
         <motion.div
           initial={{ y: 0, opacity: 1 }}
