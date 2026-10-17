@@ -65,7 +65,10 @@ export function dbRowToProperty(p: any): Property {
     featured: row.is_featured || undefined,
     premium: row.is_top_featured || undefined,
     trending: row.is_trending || row.is_hot || undefined,
-    createdAt: safeText(row.created_at),
+    createdAt:
+      row.created_at instanceof Date
+        ? row.created_at.toISOString()
+        : safeText(row.created_at),
     isTopFeatured: !!row.is_top_featured,
     topFeaturedRank: typeof row.top_featured_rank === "number" ? row.top_featured_rank : null,
     assignedStaffId: row.assigned_staff_id ?? null,

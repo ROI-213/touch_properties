@@ -17,7 +17,7 @@ export const getPublicPropertiesFn = createServerFn({ method: "GET" })
       `;
       const dbPromise = dbQuery(sql, []);
       const timeoutPromise = new Promise<never>((_, reject) =>
-        setTimeout(() => reject(new Error("DB timeout")), 1500)
+        setTimeout(() => reject(new Error("DB timeout")), 10000)
       );
       const res = await Promise.race([dbPromise, timeoutPromise]);
       const rows = res.rows || [];

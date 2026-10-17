@@ -239,13 +239,14 @@ export function FeaturedProperties() {
           </div>
 
           {/* Scrollable 4-by-4 Row List (shows 4 row cards at a time, scroll down for next 4, then 4) */}
-          <div className="mt-4 max-h-[500px] sm:max-h-[570px] overflow-y-auto snap-y snap-mandatory pr-0.5 scroll-smooth flex flex-col gap-2.5">
+          <div className="mt-4 h-[508px] sm:h-[580px] overflow-y-auto snap-y snap-mandatory pr-0.5 scroll-smooth flex flex-col gap-2.5">
             {isLoading
               ? Array.from({ length: 4 }).map((_, i) => <FeaturedProjectCardSkeleton key={i} />)
               : mobileBatchesOfFour.map((batch, batchIdx) => (
                   <div
                     key={batchIdx}
-                    className="snap-start shrink-0 flex flex-col gap-2.5"
+                    data-batch={batchIdx + 1}
+                    className="snap-start snap-always shrink-0 flex flex-col gap-2.5 min-h-[500px] sm:min-h-[572px]"
                   >
                     {batch.map((p) => (
                       <FeaturedProjectCard key={p.id} p={p} />
