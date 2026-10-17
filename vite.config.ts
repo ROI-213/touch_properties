@@ -14,7 +14,7 @@ export default defineConfig({
     ...(process.env.NITRO_PRESET ? { preset: process.env.NITRO_PRESET } : {}),
     vercel: {
       functions: {
-        runtime: "nodejs20.x",
+        runtime: "nodejs24.x",
       },
     },
   },
