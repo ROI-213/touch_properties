@@ -206,7 +206,7 @@ export function SearchPanel() {
       initial={false}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.7, delay: 0.6 }}
-      className="relative z-20 mx-auto mt-3 w-[calc(100%-1rem)] sm:w-[calc(100%-2rem)] rounded-2xl border-t-4 border-gold p-3.5 sm:p-5 md:p-6 shadow-elevated md:-mt-[40px]"
+      className="relative z-20 mx-auto mt-3 w-[calc(100%-1rem)] sm:w-[calc(100%-2rem)] md:w-full max-w-[1040px] rounded-2xl border-t-4 border-gold p-3.5 sm:p-5 md:p-6 shadow-elevated md:-mt-[50px]"
       style={{
         background: "rgba(248,245,240,0.97)",
         backdropFilter: "blur(8px)",

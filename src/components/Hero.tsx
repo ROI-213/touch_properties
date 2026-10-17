@@ -508,7 +508,7 @@ function HeroCarousel() {
 
   return (
     <div
-      className="relative h-[480px] sm:h-[500px] md:h-[430px] lg:h-[450px] w-full overflow-hidden rounded-[24px] sm:rounded-[28px] md:rounded-[30px] shadow-[0_20px_60px_rgba(0,0,0,0.16)] flex flex-col justify-center [overflow-anchor:none]"
+      className="relative h-[500px] sm:h-[560px] md:h-[600px] w-full overflow-hidden rounded-[24px] sm:rounded-[28px] md:rounded-[36px] shadow-[0_24px_80px_rgba(0,0,0,0.18)] flex flex-col justify-center [overflow-anchor:none]"
       onMouseEnter={() => setPaused(true)}
       onMouseLeave={() => setPaused(false)}
       onTouchStart={(e) => (touchStart.current = e.touches[0].clientX)}
@@ -664,7 +664,7 @@ function HeroCarousel() {
 
 export function Hero() {
   return (
-    <section className="relative w-full px-2 pt-[70px] sm:px-4 sm:pt-[76px]">
+    <section className="relative w-full px-2 pt-[70px] sm:px-4 sm:pt-[80px]">
       <motion.div
         initial={false}
         animate={{ opacity: 1, y: 0 }}
