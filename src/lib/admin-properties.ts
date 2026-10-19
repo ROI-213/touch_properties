@@ -172,12 +172,15 @@ function sanitizePropertyPayload<T extends Record<string, any>>(payload: T) {
     updated_at,
     builder,
     builders,
+    owner,
+    agent,
     location,
     locations,
     property_images,
     property_prices,
     property_configurations,
     property_amenities,
+    property_assignments,
     amenities,
     ...clean
   } = payload as any;

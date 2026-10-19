@@ -137,6 +137,11 @@ export function PropertyCard({
           <h3 className="mt-1 font-display text-base font-semibold leading-snug text-charcoal sm:text-[20px] sm:leading-tight line-clamp-2">
             {p.title}
           </h3>
+          {p.subtitle && (
+            <div className="mt-0.5 text-[11.5px] sm:text-xs font-medium text-gold line-clamp-1">
+              {p.subtitle}
+            </div>
+          )}
           <div className="mt-1 flex items-center gap-1 text-[12px] text-charcoal/60 sm:text-[13px]">
             <MapPin className="h-3.5 w-3.5 shrink-0" /> <span className="truncate">{p.location}</span>
           </div>

@@ -135,10 +135,15 @@ export function PropertyForm({
   const [amenitySearch, setAmenitySearch] = useState("");
   const [showAdvanced, setShowAdvanced] = useState(false);
 
-  // Quick-add inline Builder & Location states
+  // Quick-add inline Builder, Owner & Location states
   const [addingBuilder, setAddingBuilder] = useState(false);
   const [newBuilderName, setNewBuilderName] = useState("");
   const [savingBuilder, setSavingBuilder] = useState(false);
+
+  const [addingOwner, setAddingOwner] = useState(false);
+  const [newOwnerName, setNewOwnerName] = useState("");
+  const [newOwnerPhone, setNewOwnerPhone] = useState("");
+  const [savingOwner, setSavingOwner] = useState(false);
 
   const [addingLocation, setAddingLocation] = useState(false);
   const [newLocZone, setNewLocZone] = useState("East Bangalore");
@@ -183,13 +188,16 @@ export function PropertyForm({
   // Sync smart price input to v.starting_price
   const handlePriceChange = (rawVal: string, unit: "Cr" | "Lakhs" | "Raw") => {
     setPriceInput(rawVal);
-    setPriceUnit(unit);
     const num = parseFloat(rawVal);
     if (!rawVal.trim() || Number.isNaN(num) || num <= 0) {
+      setPriceUnit(unit);
       set("starting_price", null);
       return;
     }
-    const multiplier = unit === "Cr" ? 10000000 : unit === "Lakhs" ? 100000 : 1;
+    // If user typed a large full rupee amount (e.g. 22000000), auto-switch to Raw ₹ so it doesn't multiply by Cr
+    const effectiveUnit = num >= 100000 && unit !== "Raw" ? "Raw" : unit;
+    setPriceUnit(effectiveUnit);
+    const multiplier = effectiveUnit === "Cr" ? 10000000 : effectiveUnit === "Lakhs" ? 100000 : 1;
     const rupees = Math.round(num * multiplier);
     set("starting_price", rupees);
   };
@@ -224,6 +232,32 @@ export function PropertyForm({
       toast.error(e.message || "Failed to add builder");
     } finally {
       setSavingBuilder(false);
+    }
+  };
+
+  // Quick Add Owner inline
+  const handleQuickAddOwner = async () => {
+    if (!newOwnerName.trim()) return toast.error("Enter owner's name");
+    setSavingOwner(true);
+    try {
+      const created = await upsertBuilder({
+        name: newOwnerName.trim(),
+        display_name: newOwnerName.trim(),
+        contact_type: "owner",
+        primary_phone: newOwnerPhone.trim() || null,
+        whatsapp_number: newOwnerPhone.trim() || null,
+      } as any);
+      await qc.invalidateQueries({ queryKey: ["admin-builders"] });
+      set("owner_id", created.id);
+      setD("owner_name", created.display_name || created.name);
+      setNewOwnerName("");
+      setNewOwnerPhone("");
+      setAddingOwner(false);
+      toast.success(`Added owner "${created.name}"`);
+    } catch (e: any) {
+      toast.error(e.message || "Failed to add owner");
+    } finally {
+      setSavingOwner(false);
     }
   };
 
@@ -346,7 +380,9 @@ export function PropertyForm({
           </div>
           <div>
             <h2 className="text-base font-bold text-[#0a1f44]">1. Property Basics</h2>
-            <p className="text-xs text-slate-500">Enter the project name, category, and builder</p>
+            <p className="text-xs text-slate-500">
+              Enter the project name, sub title, owner&apos;s name, builder, and status
+            </p>
           </div>
         </div>
 
@@ -355,7 +391,7 @@ export function PropertyForm({
             <label className={labelCls}>Project / Property Name *</label>
             <input
               className={`${input} text-base font-medium`}
-              placeholder="e.g. Prestige Somerville / Sobha Neopolis"
+              placeholder="e.g. FOR SALE | PREMIUM 3 BHK APARTMENT / Prestige Somerville"
               value={v.project_name || ""}
               onChange={(e) => set("project_name", e.target.value)}
               required
@@ -385,6 +421,23 @@ export function PropertyForm({
             </div>
           </div>
 
+          {/* Sub Title / Tagline */}
+          <div className="sm:col-span-2 lg:col-span-3">
+            <label className={labelCls}>Sub Title / Tagline (Displayed below Property Name)</label>
+            <input
+              className={input}
+              placeholder="e.g. DSR Parkway | Bellandur, Bengaluru — ✨ Spacious Semi-Furnished Home with 2 Covered Car Parks"
+              value={details.subtitle ?? details.tagline ?? ""}
+              onChange={(e) => {
+                const val = e.target.value;
+                setV((s: any) => ({
+                  ...s,
+                  details: { ...(s.details ?? {}), subtitle: val, tagline: val },
+                }));
+              }}
+            />
+          </div>
+
           {/* Property Type visual pills */}
           <div className="sm:col-span-2 lg:col-span-3">
             <label className={labelCls}>Property Type *</label>
@@ -408,6 +461,81 @@ export function PropertyForm({
                 );
               })}
             </div>
+          </div>
+
+          {/* Owner's Name (Owner / Seller) with inline + Quick Add */}
+          <div>
+            <div className="mb-1 flex items-center justify-between">
+              <label className="text-xs font-semibold uppercase tracking-wider text-slate-500">
+                Owner&apos;s Name (Owner / Seller)
+              </label>
+              <button
+                type="button"
+                onClick={() => setAddingOwner((s) => !s)}
+                className="inline-flex items-center gap-0.5 text-[11px] font-semibold text-[#c9a961] hover:underline"
+              >
+                <Plus size={12} /> {addingOwner ? "Cancel" : "Add New Owner"}
+              </button>
+            </div>
+            {addingOwner ? (
+              <div className="space-y-1.5">
+                <input
+                  className={input}
+                  placeholder="Owner's Name *"
+                  value={newOwnerName}
+                  onChange={(e) => setNewOwnerName(e.target.value)}
+                />
+                <div className="flex gap-1.5">
+                  <input
+                    className={input}
+                    placeholder="Owner Phone (Optional)"
+                    value={newOwnerPhone}
+                    onChange={(e) => setNewOwnerPhone(e.target.value)}
+                  />
+                  <button
+                    type="button"
+                    disabled={savingOwner}
+                    onClick={handleQuickAddOwner}
+                    className="shrink-0 rounded-lg bg-[#0a1f44] px-3 text-xs font-semibold text-white hover:bg-[#0a1f44]/90"
+                  >
+                    {savingOwner ? "…" : "Add"}
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <div className="space-y-1.5">
+                <select
+                  className={input}
+                  value={v.owner_id || ""}
+                  onChange={(e) => {
+                    const id = e.target.value || null;
+                    set("owner_id", id);
+                    const found = (builders.data ?? []).find((b: any) => b.id === id);
+                    if (found) {
+                      setD("owner_name", found.display_name || found.name);
+                    }
+                  }}
+                >
+                  <option value="">— Select Owner / Seller —</option>
+                  {(builders.data ?? [])
+                    .filter((b: any) =>
+                      ["owner", "land_owner", "individual_seller"].includes(b.contact_type),
+                    )
+                    .map((b: any) => (
+                      <option key={b.id} value={b.id}>
+                        {b.display_name || b.name}
+                        {b.primary_phone ? ` · ${b.primary_phone}` : ""}
+                      </option>
+                    ))}
+                </select>
+                <input
+                  className={input}
+                  placeholder="Or type Owner's Name directly (e.g. Sreeja Rakesh)"
+                  value={details.owner_name || ""}
+                  onChange={(e) => setD("owner_name", e.target.value)}
+                />
+              </div>
+            )}
           </div>
 
           {/* Builder with inline + Quick Add */}
@@ -459,42 +587,41 @@ export function PropertyForm({
             )}
           </div>
 
-          {/* Possession Status */}
-          <div>
-            <label className={labelCls}>Project Status</label>
-            <div className="grid grid-cols-2 gap-1.5 rounded-lg bg-slate-100 p-1">
-              {[
-                { label: "Ready to Move", ready: true, status: "Ready to Move" },
-                { label: "Under Construction", ready: false, status: "Under Construction" },
-              ].map((st) => {
-                const active = Boolean(v.is_ready_to_move) === st.ready;
-                return (
-                  <button
-                    key={st.label}
-                    type="button"
-                    onClick={() => {
-                      set("is_ready_to_move", st.ready);
-                      set("project_status", st.status);
-                    }}
-                    className={`rounded-md py-2 text-xs font-semibold transition ${
-                      active
-                        ? "bg-white text-[#0a1f44] shadow-xs"
-                        : "text-slate-600 hover:text-[#0a1f44]"
-                    }`}
-                  >
-                    {st.label}
-                  </button>
-                );
-              })}
+          {/* Possession Status & RERA */}
+          <div className="space-y-2">
+            <div>
+              <label className={labelCls}>Project Status</label>
+              <div className="grid grid-cols-2 gap-1.5 rounded-lg bg-slate-100 p-1">
+                {[
+                  { label: "Ready to Move", ready: true, status: "Ready to Move" },
+                  { label: "Under Construction", ready: false, status: "Under Construction" },
+                ].map((st) => {
+                  const active = Boolean(v.is_ready_to_move) === st.ready;
+                  return (
+                    <button
+                      key={st.label}
+                      type="button"
+                      onClick={() => {
+                        set("is_ready_to_move", st.ready);
+                        set("project_status", st.status);
+                        setD("occupancy_status", st.ready ? "Ready to Occupy" : "Under Construction");
+                      }}
+                      className={`rounded-md py-2 text-xs font-semibold transition ${
+                        active
+                          ? "bg-white text-[#0a1f44] shadow-xs"
+                          : "text-slate-600 hover:text-[#0a1f44]"
+                      }`}
+                    >
+                      {st.label}
+                    </button>
+                  );
+                })}
+              </div>
             </div>
-          </div>
-
-          <div>
-            <label className={labelCls}>Possession Date / RERA (Optional)</label>
             <div className="grid grid-cols-2 gap-2">
               <input
                 className={input}
-                placeholder="e.g. Dec 2026"
+                placeholder="Possession (e.g. Ready)"
                 value={v.possession_date || ""}
                 onChange={(e) => set("possession_date", e.target.value)}
               />
@@ -509,7 +636,7 @@ export function PropertyForm({
         </div>
       </div>
 
-      {/* ==================== STEP 2: PRICE, BHK & SIZE ==================== */}
+      {/* ==================== STEP 2: PRICE, BHK & PROPERTY SPECIFICATIONS ==================== */}
       <div className="rounded-2xl border border-slate-200 bg-white p-5 sm:p-6 shadow-xs">
         <div className="mb-4 flex items-center justify-between border-b border-slate-100 pb-3">
           <div className="flex items-center gap-2.5">
@@ -517,9 +644,11 @@ export function PropertyForm({
               <IndianRupee size={17} />
             </div>
             <div>
-              <h2 className="text-base font-bold text-[#0a1f44]">2. Price, BHK & Size</h2>
+              <h2 className="text-base font-bold text-[#0a1f44]">
+                2. Price, BHK &amp; Property Specifications
+              </h2>
               <p className="text-xs text-slate-500">
-                Enter price in Crores or Lakhs — no need to count zeros
+                Enter price, area, configurations, floor, facing, furnishing, parking &amp; khata
               </p>
             </div>
           </div>
@@ -533,13 +662,13 @@ export function PropertyForm({
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {/* Smart Price Input */}
           <div>
-            <label className={labelCls}>Starting Price *</label>
+            <label className={labelCls}>Starting / Expected Price *</label>
             <div className="flex gap-1.5">
               <input
                 type="number"
                 step="any"
                 className={input}
-                placeholder={priceUnit === "Cr" ? "e.g. 1.45" : priceUnit === "Lakhs" ? "e.g. 75" : "e.g. 14500000"}
+                placeholder={priceUnit === "Cr" ? "e.g. 2.20" : priceUnit === "Lakhs" ? "e.g. 75" : "e.g. 22000000"}
                 value={priceInput}
                 onChange={(e) => handlePriceChange(e.target.value, priceUnit)}
               />
@@ -564,28 +693,38 @@ export function PropertyForm({
 
           {/* Carpet / Super Built-up Area */}
           <div>
-            <label className={labelCls}>Area / Size (Sq.ft)</label>
+            <label className={labelCls}>Super Built-up / Carpet Area (Sq.ft)</label>
             <input
               className={input}
-              placeholder="e.g. 1740"
-              value={v.carpet_area || ""}
-              onChange={(e) => set("carpet_area", e.target.value)}
+              placeholder="e.g. 1528 Sq. Ft."
+              value={v.carpet_area || details.super_builtup_area || ""}
+              onChange={(e) => {
+                const val = e.target.value;
+                set("carpet_area", val);
+                setD("super_builtup_area", val);
+              }}
             />
           </div>
 
-          {/* Unit Sizes Range / Land Parcel */}
+          {/* Price Status / Negotiable */}
           <div>
-            <label className={labelCls}>Size Range / Land Parcel (Optional)</label>
+            <label className={labelCls}>Price Status &amp; Land Parcel</label>
             <div className="grid grid-cols-2 gap-2">
+              <select
+                className={input}
+                value={details.price_suffix || ""}
+                onChange={(e) => setD("price_suffix", e.target.value)}
+              >
+                <option value="">Negotiable ✓</option>
+                {["Negotiable", "Fixed Price", "All Inclusive", "Starting Price"].map((o) => (
+                  <option key={o} value={o}>
+                    {o}
+                  </option>
+                ))}
+              </select>
               <input
                 className={input}
-                placeholder="1200 - 2100 sqft"
-                value={v.unit_sizes || ""}
-                onChange={(e) => set("unit_sizes", e.target.value)}
-              />
-              <input
-                className={input}
-                placeholder="e.g. 4.5 Acres"
+                placeholder="Land (e.g. 10 Acres)"
                 value={v.land_parcel || ""}
                 onChange={(e) => set("land_parcel", e.target.value)}
               />
@@ -627,6 +766,91 @@ export function PropertyForm({
                       .filter(Boolean),
                   )
                 }
+              />
+            </div>
+          </div>
+
+          {/* Key Property Specifications (Shown on Frontend Detail Page) */}
+          <div>
+            <label className={labelCls}>Floor Details</label>
+            <input
+              className={input}
+              placeholder="e.g. 7th of 14 Floors"
+              value={details.floor_details || ""}
+              onChange={(e) => setD("floor_details", e.target.value)}
+            />
+          </div>
+
+          <div>
+            <label className={labelCls}>Main Door Facing</label>
+            <input
+              className={input}
+              placeholder="e.g. West / East / North"
+              value={details.facing_direction || ""}
+              onChange={(e) => setD("facing_direction", e.target.value)}
+            />
+          </div>
+
+          <div>
+            <label className={labelCls}>Car Parking</label>
+            <input
+              className={input}
+              placeholder="e.g. 2 Covered Car Parks"
+              value={details.covered_parking || ""}
+              onChange={(e) => setD("covered_parking", e.target.value)}
+            />
+          </div>
+
+          <div>
+            <label className={labelCls}>Bathrooms &amp; Balconies</label>
+            <div className="grid grid-cols-2 gap-2">
+              <input
+                className={input}
+                placeholder="Bathrooms (e.g. 2)"
+                value={details.bathrooms || ""}
+                onChange={(e) => setD("bathrooms", e.target.value)}
+              />
+              <input
+                className={input}
+                placeholder="Balcony (e.g. 1 + Utility)"
+                value={details.balconies || ""}
+                onChange={(e) => setD("balconies", e.target.value)}
+              />
+            </div>
+          </div>
+
+          <div>
+            <label className={labelCls}>Furnishing Status</label>
+            <select
+              className={input}
+              value={details.interior_status || ""}
+              onChange={(e) => setD("interior_status", e.target.value)}
+            >
+              <option value="">— Select Furnishing —</option>
+              {["Semi-Furnished", "Fully Furnished", "Unfurnished", "Basic Interiors Completed"].map(
+                (o) => (
+                  <option key={o} value={o}>
+                    {o}
+                  </option>
+                ),
+              )}
+            </select>
+          </div>
+
+          <div>
+            <label className={labelCls}>Khata &amp; Maintenance</label>
+            <div className="grid grid-cols-2 gap-2">
+              <input
+                className={input}
+                placeholder="Khata (e.g. E-Khata)"
+                value={details.khata_type || ""}
+                onChange={(e) => setD("khata_type", e.target.value)}
+              />
+              <input
+                className={input}
+                placeholder="Maint. (e.g. ₹6,000/mo)"
+                value={details.maintenance_charges || ""}
+                onChange={(e) => setD("maintenance_charges", e.target.value)}
               />
             </div>
           </div>
@@ -866,7 +1090,7 @@ export function PropertyForm({
         </div>
       </div>
 
-      {/* ==================== STEP 4: DESCRIPTION, FLAGS & AMENITIES ==================== */}
+      {/* ==================== STEP 4: PROPERTY DETAILS, LOCATION ADVANTAGE, IDEAL FOR & AMENITIES ==================== */}
       <div className="rounded-2xl border border-slate-200 bg-white p-5 sm:p-6 shadow-xs space-y-5">
         <div className="flex items-center gap-2.5 border-b border-slate-100 pb-3">
           <div className="grid h-8 w-8 place-items-center rounded-lg bg-[#0a1f44] text-[#c9a961]">
@@ -874,17 +1098,17 @@ export function PropertyForm({
           </div>
           <div>
             <h2 className="text-base font-bold text-[#0a1f44]">
-              4. Overview, Homepage Placement & Amenities
+              4. Property Details, Location Advantage, Ideal For &amp; Amenities
             </h2>
             <p className="text-xs text-slate-500">
-              Describe the property and choose where it appears on the website
+              Add property details, location advantages, ideal buyer/tenant profile, and homepage placement
             </p>
           </div>
         </div>
 
         {/* Homepage Placement Flags */}
         <div>
-          <label className={labelCls}>Website Visibility & Homepage Sections</label>
+          <label className={labelCls}>Website Visibility &amp; Homepage Sections</label>
           <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-3 lg:grid-cols-6">
             {[
               ["is_active", "Active (Live)"],
@@ -917,26 +1141,60 @@ export function PropertyForm({
           </div>
         </div>
 
-        {/* Description & Highlights */}
+        {/* Description, Property Details, Location Advantage & Ideal For */}
         <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
           <div>
-            <label className={labelCls}>About This Property (Description)</label>
+            <label className={labelCls}>About This Property (Overview / Description)</label>
             <textarea
-              rows={4}
+              rows={5}
               className={input}
               value={v.overview || ""}
               onChange={(e) => set("overview", e.target.value)}
-              placeholder="Write a brief overview about the project, location benefits, and key highlights…"
+              placeholder="Write a detailed overview about this property, community living, and project summary…"
             />
           </div>
           <div>
-            <label className={labelCls}>Key Highlights (One per line)</label>
+            <label className={labelCls}>🏠 Property Details &amp; Highlights (One per line)</label>
             <textarea
-              rows={4}
+              rows={5}
               className={input}
-              value={v.highlights || ""}
-              onChange={(e) => set("highlights", e.target.value)}
-              placeholder={"RERA Approved\nNear Metro Station\nClubhouse & Swimming Pool"}
+              value={v.highlights ?? details.property_details ?? ""}
+              onChange={(e) => {
+                const val = e.target.value;
+                set("highlights", val);
+                setD("property_details", val);
+              }}
+              placeholder={
+                "Society: DSR Parkway\nConfiguration: 3 BHK\nBathrooms: 2 | Balcony: 1 | Utility Area: 1\nSuper Built-up Area: 1,528 Sq. Ft.\nFloor: 7th of 14 Floors\nMain Door Facing: West\nFurnishing: Semi-Furnished\nCar Parking: 2 Covered Car Parks\nKhata: E-Khata"
+              }
+            />
+          </div>
+          <div>
+            <label className={labelCls}>📍 Location Advantage (One per line)</label>
+            <textarea
+              rows={5}
+              className={input}
+              value={v.location_advantages ?? details.location_advantages ?? ""}
+              onChange={(e) => {
+                const val = e.target.value;
+                set("location_advantages", val);
+                setD("location_advantages", val);
+              }}
+              placeholder={
+                "Convenient access to Sarjapur Road and Bellandur.\nConnectivity to Bengaluru’s major IT and business hubs.\nSuitable for professionals working in the Outer Ring Road IT corridor.\nAccess to schools, hospitals, supermarkets, and restaurants."
+              }
+            />
+          </div>
+          <div>
+            <label className={labelCls}>👨‍👩‍👧‍👦 Ideal For (One per line)</label>
+            <textarea
+              rows={5}
+              className={input}
+              value={details.ideal_for || ""}
+              onChange={(e) => setD("ideal_for", e.target.value)}
+              placeholder={
+                "Families seeking a spacious 3 BHK apartment.\nIT professionals working around Bellandur and the Outer Ring Road.\nBuyers looking for a home in an established residential community.\nInvestors exploring residential property in East Bengaluru."
+              }
             />
           </div>
         </div>

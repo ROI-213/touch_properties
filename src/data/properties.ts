@@ -2,7 +2,9 @@ export interface Property {
   id: string;
   slug: string;
   title: string;
+  subtitle?: string;
   builder: string;
+  ownerName?: string;
   location: string;
   area: string; // zone / area like "Whitefield"
   city: string;

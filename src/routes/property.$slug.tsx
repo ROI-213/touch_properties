@@ -84,20 +84,35 @@ export const Route = createFileRoute("/property/$slug")({
       const { data } = await supabase
         .from("properties")
         .select(
-          "*, builder:builders!properties_builder_id_fkey(id, name, logo_url, primary_phone, whatsapp_number, email, website), location:locations!properties_location_id_fkey(zone, locality), property_images(url, image_type, display_order), property_assignments(*), property_amenities(amenity:amenities(id, name, icon))",
+          "*, builder:builders!properties_builder_id_fkey(id, name, display_name, logo_url, primary_phone, whatsapp_number, email, website), location:locations!properties_location_id_fkey(zone, locality), property_images(url, image_type, display_order), property_assignments(*), property_amenities(amenity:amenities(id, name, icon))",
         )
         .ilike("slug", params.slug)
         .eq("is_active", true)
         .maybeSingle();
       if (data) {
         property = dbRowToProperty(data);
+        const rowDetails = ((data as any).details ?? {}) as Record<string, any>;
         (property as any).aboutProperty = ((data as any).overview ?? "").toString();
-        (property as any).details = ((data as any).details ?? {}) as Record<string, any>;
+        (property as any).highlightsText = ((data as any).highlights ?? rowDetails.property_details ?? "").toString();
+        (property as any).details = rowDetails;
         (property as any).builderContact = (data as any).builder ?? null;
+        (property as any).ownerContact = (data as any).owner ?? null;
+        (property as any).ownerName = (
+          (data as any).owner?.display_name ||
+          (data as any).owner?.name ||
+          rowDetails.owner_name ||
+          ""
+        ).toString();
+        (property as any).subtitle = (rowDetails.subtitle || rowDetails.tagline || "").toString();
         (property as any).mapLink = ((data as any).map_link ?? "").toString();
         (property as any).directionsLink = ((data as any).directions_link ?? "").toString();
         (property as any).fullAddress = ((data as any).address ?? "").toString();
-        (property as any).locationAdvantages = ((data as any).location_advantages ?? "").toString();
+        (property as any).locationAdvantages = (
+          (data as any).location_advantages ??
+          rowDetails.location_advantages ??
+          ""
+        ).toString();
+        (property as any).idealFor = (rowDetails.ideal_for ?? "").toString();
         (property as any).zoneLocality = (data as any).location
           ? `${(data as any).location.zone ?? ""}${(data as any).location.locality ? ` · ${(data as any).location.locality}` : ""}`.trim()
           : "";
@@ -203,6 +218,18 @@ const ALL_AMENITIES: { icon: string; label: string }[] = [
 import { useEffect } from "react";
 import { useRecentStore } from "@/hooks/useRecentStore";
 
+function cleanLines(raw: string, headerPattern?: RegExp): string[] {
+  if (!raw || typeof raw !== "string") return [];
+  return raw
+    .split(/\r?\n/)
+    .map((line) => line.replace(/^[\s*\-•✔️✅]+/, "").trim())
+    .filter((line) => {
+      if (!line) return false;
+      if (headerPattern && headerPattern.test(line)) return false;
+      return true;
+    });
+}
+
 function PropertyPage() {
   const { property: initialProperty, assignedStaff = [], formAssignedStaff = null } = Route.useLoaderData();
   const assignmentPrimary = pickPrimaryContact(assignedStaff);
@@ -219,7 +246,17 @@ function PropertyPage() {
     : assignmentPrimary;
   const { data: liveProperties = [] } = useDbProperties();
   const allProperties = liveProperties.length > 0 ? liveProperties : properties;
-  const p = allProperties.find((x) => x.slug === initialProperty.slug || x.id === initialProperty.id) ?? initialProperty;
+  const liveMatch = allProperties.find((x) => x.slug === initialProperty.slug || x.id === initialProperty.id);
+  const p: any = liveMatch
+    ? {
+        ...initialProperty,
+        ...liveMatch,
+        details: {
+          ...((initialProperty as any).details ?? {}),
+          ...((liveMatch as any).details ?? {}),
+        },
+      }
+    : initialProperty;
   
   const addRecent = useRecentStore((s) => s.add);
   useEffect(() => {
@@ -246,11 +283,123 @@ function PropertyPage() {
       : ALL_AMENITIES.map((a, i) => ({ ...a, available: (i + (p.id.charCodeAt(p.id.length - 1) % 3)) % 4 !== 0 }));
 
   const perSqft = Math.round(p.priceValue / Math.max(1, p.sqft));
-  const details: Record<string, any> = (initialProperty as any).details ?? {};
+  const details: Record<string, any> = p.details ?? (initialProperty as any).details ?? {};
   const detailList = (k: string): { title?: string; subtitle?: string; icon?: string }[] =>
     Array.isArray(details[k]) ? details[k].filter((x: any) => x?.title) : [];
   const bulletHighlights = detailList("bullet_highlights");
-  const aboutProperty = ((initialProperty as any).aboutProperty ?? "").trim();
+
+  const subtitleText = (
+    details.subtitle ||
+    details.tagline ||
+    p.subtitle ||
+    (initialProperty as any).subtitle ||
+    ""
+  ).toString().trim();
+
+  const ownerNameText = (
+    p.ownerName ||
+    (initialProperty as any).ownerName ||
+    details.owner_name ||
+    ""
+  ).toString().trim();
+
+  const rawHighlightsText = (
+    p.highlightsText ||
+    (initialProperty as any).highlightsText ||
+    details.property_details ||
+    ""
+  ).toString();
+  const highlightLines = cleanLines(
+    rawHighlightsText,
+    /^(?:🏠\s*)?(?:property\s+(?:highlights|details)|key\s+highlights)\s*:?$/i,
+  );
+
+  const rawLocationAdvantages = (
+    p.locationAdvantages ||
+    (initialProperty as any).locationAdvantages ||
+    details.location_advantages ||
+    ""
+  ).toString();
+  const locationAdvantageLines = cleanLines(
+    rawLocationAdvantages,
+    /^(?:📍\s*)?location\s+(?:advantages|benefits)\s*:?$/i,
+  );
+
+  // Also check if connectivity has an IDEAL FOR block (legacy entry) or real connectivity items
+  const rawIdealForFromConnectivity = detailList("connectivity")
+    .filter((it) => /ideal\s+for/i.test(it.title || ""))
+    .map((it) =>
+      (it.title || "")
+        .replace(/^(?:👨‍👩‍👧‍👦\s*)?ideal\s+for\s*:?/i, "")
+        .split(/\s*\*\s+/)
+        .map((s) => s.trim())
+        .filter(Boolean)
+        .join("\n"),
+    )
+    .join("\n");
+
+  const rawIdealFor = (
+    details.ideal_for ||
+    p.idealFor ||
+    (initialProperty as any).idealFor ||
+    rawIdealForFromConnectivity ||
+    ""
+  ).toString();
+  const idealForLines = cleanLines(rawIdealFor, /^(?:👨‍👩‍👧‍👦\s*)?ideal\s+for\s*:?$/i);
+
+  // Structured specification key-value pairs for the Property Details card
+  const structuredSpecs: { label: string; value: string }[] = [
+    details.bhk_display_label || (p.bhk ? `${p.bhk} BHK` : "")
+      ? { label: "Configuration", value: String(details.bhk_display_label || `${p.bhk} BHK`) }
+      : null,
+    details.super_builtup_area || (p.sqft ? `${p.sqft.toLocaleString()} Sq. Ft.` : "")
+      ? {
+          label: "Super Built-up Area",
+          value: String(
+            details.super_builtup_area
+              ? /sq/i.test(String(details.super_builtup_area))
+                ? details.super_builtup_area
+                : `${details.super_builtup_area} Sq. Ft.`
+              : `${p.sqft.toLocaleString()} Sq. Ft.`,
+          ),
+        }
+      : null,
+    details.bathrooms ? { label: "Bathrooms", value: String(details.bathrooms) } : null,
+    details.balconies ? { label: "Balcony / Utility", value: String(details.balconies) } : null,
+    details.floor_details
+      ? {
+          label: "Floor",
+          value:
+            details.total_floors && !/floor|of/i.test(String(details.floor_details))
+              ? `${details.floor_details} of ${details.total_floors} Floors`
+              : String(details.floor_details),
+        }
+      : null,
+    details.facing_direction ? { label: "Main Door Facing", value: String(details.facing_direction) } : null,
+    details.interior_status ? { label: "Furnishing", value: String(details.interior_status) } : null,
+    details.covered_parking
+      ? {
+          label: "Car Parking",
+          value: /^\d+$/.test(String(details.covered_parking).trim())
+            ? `${details.covered_parking} Covered Car Park${Number(details.covered_parking) > 1 ? "s" : ""}`
+            : String(details.covered_parking),
+        }
+      : null,
+    details.khata_type ? { label: "Khata", value: String(details.khata_type) } : null,
+    details.maintenance_charges
+      ? {
+          label: "Maintenance",
+          value: /^\d+$/.test(String(details.maintenance_charges).trim())
+            ? `₹${Number(details.maintenance_charges).toLocaleString("en-IN")} / month`
+            : String(details.maintenance_charges),
+        }
+      : null,
+    details.registration_status ? { label: "Registration", value: String(details.registration_status) } : null,
+    details.home_loan_status ? { label: "Home Loan", value: String(details.home_loan_status) } : null,
+    ownerNameText ? { label: "Owner / Seller", value: ownerNameText } : null,
+  ].filter((x): x is { label: string; value: string } => Boolean(x && x.value));
+
+  const aboutProperty = (p.aboutProperty ?? (initialProperty as any).aboutProperty ?? p.description ?? "").trim();
   const aboutParagraphs = aboutProperty
     ? aboutProperty.split(/\n\s*\n/).map((s: string) => s.trim()).filter(Boolean)
     : [];
@@ -276,6 +425,11 @@ function PropertyPage() {
     image: p.image,
   };
 
+  // Format price display text cleanly (avoid showing raw unformatted numbers like "22000000")
+  const formattedPriceDisplay =
+    details.price_display_text && !/^\d+$/.test(String(details.price_display_text).trim())
+      ? details.price_display_text
+      : p.price;
 
   return (
     <div className="min-h-screen bg-ivory">
@@ -306,11 +460,20 @@ function PropertyPage() {
           <h1 className="mt-3 font-display text-3xl font-bold leading-tight text-charcoal md:text-[44px]">
             {details.display_title || p.title}
           </h1>
-          {details.tagline && (
-            <div className="mt-1 text-[15px] italic text-gold">{details.tagline}</div>
+          {subtitleText && (
+            <p className="mt-2 text-base sm:text-[18px] font-medium text-gold leading-snug">
+              {subtitleText}
+            </p>
           )}
-          <div className="mt-2 flex items-center gap-1 text-[15px] text-charcoal/70">
-            <MapPin size={15} /> {details.short_location_text || p.location}
+          <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1 text-[15px] text-charcoal/70">
+            <span className="inline-flex items-center gap-1">
+              <MapPin size={15} className="text-gold shrink-0" /> {details.short_location_text || p.location}
+            </span>
+            {ownerNameText && (
+              <span className="inline-flex items-center gap-1.5 rounded-full bg-sand px-3 py-0.5 text-xs font-semibold text-charcoal">
+                👤 Owner / Seller: <span className="text-gold">{ownerNameText}</span>
+              </span>
+            )}
           </div>
           <div className="mt-2 inline-block rounded-full bg-sand px-3 py-1" style={{ fontFamily: "Space Mono, monospace" }}>
             <span className="text-[13px] text-charcoal/70">#{p.id}</span>
@@ -320,12 +483,12 @@ function PropertyPage() {
           <div className="mt-5 sm:mt-6 flex flex-wrap items-end justify-between gap-3 sm:gap-4">
             <div>
               <div className="font-numeric text-3xl sm:text-4xl font-bold text-gold md:text-[48px]">
-                {details.price_display_text || p.price}
+                {formattedPriceDisplay}
               </div>
               <div className="mt-1 text-sm sm:text-[15px] text-charcoal/70">
-                {details.price_suffix || `₹ ${perSqft.toLocaleString("en-IN")} / sqft`}
+                {details.price_suffix || (p.sqft > 0 ? `₹ ${perSqft.toLocaleString("en-IN")} / sqft` : "Verified Listing")}
               </div>
-              {details.price_note && (
+              {details.price_note && !/^\d+$/.test(String(details.price_note).trim()) && (
                 <div className="mt-1 text-[12px] text-charcoal/60">{details.price_note}</div>
               )}
             </div>
@@ -344,26 +507,114 @@ function PropertyPage() {
 
           {/* Specs grid */}
           <div className="grid grid-cols-2 gap-2.5 sm:gap-3 sm:grid-cols-3">
-            <Spec icon={<Bed size={20} />} label="Bedrooms" value={details.bhk_display_label || (p.bhk ? `${p.bhk} BHK` : "—")} />
-            <Spec icon={<Building2 size={20} />} label="Floor" value={details.floor_details || (p.type === "Plot" ? "—" : "—")} />
-            <Spec icon={<Maximize size={20} />} label="Super Built-up" value={details.super_builtup_area || `${p.sqft.toLocaleString()} sqft`} />
-            <Spec icon={<Car size={20} />} label="Parking" value={details.covered_parking || "—"} />
+            <Spec
+              icon={<Bed size={20} />}
+              label="Bedrooms"
+              value={details.bhk_display_label || (p.bhk ? `${p.bhk} BHK` : "—")}
+            />
+            <Spec
+              icon={<Building2 size={20} />}
+              label="Floor"
+              value={
+                details.floor_details
+                  ? details.total_floors && !/floor|of/i.test(String(details.floor_details))
+                    ? `${details.floor_details} of ${details.total_floors} Floors`
+                    : String(details.floor_details)
+                  : "—"
+              }
+            />
+            <Spec
+              icon={<Maximize size={20} />}
+              label="Super Built-up"
+              value={
+                details.super_builtup_area
+                  ? /sq/i.test(String(details.super_builtup_area))
+                    ? String(details.super_builtup_area)
+                    : `${details.super_builtup_area} Sq. Ft.`
+                  : p.sqft
+                    ? `${p.sqft.toLocaleString()} Sq. Ft.`
+                    : "—"
+              }
+            />
+            <Spec
+              icon={<Car size={20} />}
+              label="Parking"
+              value={
+                details.covered_parking
+                  ? /^\d+$/.test(String(details.covered_parking).trim())
+                    ? `${details.covered_parking} Covered`
+                    : String(details.covered_parking)
+                  : "—"
+              }
+            />
             <Spec icon={<Compass size={20} />} label="Facing" value={details.facing_direction || "—"} />
             <Spec icon={<Bath size={20} />} label="Occupancy" value={details.occupancy_status || (p.possession || "—")} />
           </div>
 
-          {bulletHighlights.length > 0 && (
-            <div className="mt-6 rounded-2xl bg-sand/60 p-4 sm:p-5">
-              <div className="text-[14px] font-semibold text-charcoal">Property Highlights</div>
-              <ul className="mt-3 grid gap-2 sm:grid-cols-2">
-                {bulletHighlights.map((it, i) => (
-                  <li key={i} className="flex items-start gap-2 text-[14px] text-charcoal/80">
-                    <span>{it.icon || "✔️"}</span>
-                    <span>{it.title}{it.subtitle ? ` — ${it.subtitle}` : ""}</span>
-                  </li>
-                ))}
-              </ul>
-            </div>
+          {/* Property Details & Highlights */}
+          {(highlightLines.length > 0 || bulletHighlights.length > 0 || structuredSpecs.length > 0) && (
+            <section className="mt-6 rounded-2xl bg-card p-5 sm:p-6 shadow-card border border-charcoal/5">
+              <h2 className="text-[19px] sm:text-[20px] font-bold text-charcoal flex items-center gap-2">
+                <span>🏠</span> Property Details &amp; Highlights
+              </h2>
+
+              {highlightLines.length > 0 ? (
+                <ul className="mt-4 grid gap-2.5 sm:grid-cols-2">
+                  {highlightLines.map((line, i) => {
+                    const colonIdx = line.indexOf(":");
+                    const hasKeyVal = colonIdx > 0 && colonIdx < 32;
+                    return (
+                      <li
+                        key={i}
+                        className="flex items-start gap-2.5 rounded-xl bg-sand/60 px-3.5 py-2.5 text-[14px] text-charcoal/85"
+                      >
+                        <CheckCircle2 size={16} className="mt-0.5 shrink-0 text-gold" />
+                        <span>
+                          {hasKeyVal ? (
+                            <>
+                              <strong className="font-semibold text-charcoal">
+                                {line.slice(0, colonIdx + 1)}
+                              </strong>{" "}
+                              {line.slice(colonIdx + 1).trim()}
+                            </>
+                          ) : (
+                            line
+                          )}
+                        </span>
+                      </li>
+                    );
+                  })}
+                </ul>
+              ) : (
+                structuredSpecs.length > 0 && (
+                  <div className="mt-4 grid grid-cols-1 gap-2.5 sm:grid-cols-2">
+                    {structuredSpecs.map((sp, i) => (
+                      <div
+                        key={i}
+                        className="flex items-center justify-between gap-2 rounded-xl bg-sand/60 px-3.5 py-2.5 text-[13.5px]"
+                      >
+                        <span className="font-medium text-charcoal/65">{sp.label}</span>
+                        <span className="font-semibold text-charcoal text-right">{sp.value}</span>
+                      </div>
+                    ))}
+                  </div>
+                )
+              )}
+
+              {bulletHighlights.length > 0 && (
+                <ul className="mt-4 grid gap-2 sm:grid-cols-2">
+                  {bulletHighlights.map((it, i) => (
+                    <li key={i} className="flex items-start gap-2 text-[14px] text-charcoal/80">
+                      <span>{it.icon || "✔️"}</span>
+                      <span>
+                        {it.title}
+                        {it.subtitle ? ` — ${it.subtitle}` : ""}
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </section>
           )}
 
           <Divider />
@@ -402,14 +653,16 @@ function PropertyPage() {
             </section>
           )}
 
-
-
           {/* About */}
           <section>
             <h2 className="text-[20px] font-bold text-charcoal">About This Property</h2>
             <div className="mt-3 space-y-4 text-[14.5px] sm:text-[15px] leading-relaxed text-charcoal/75">
               {visibleParagraphs.length > 0 ? (
-                visibleParagraphs.map((para: string, i: number) => <p key={i}>{para}</p>)
+                visibleParagraphs.map((para: string, i: number) => (
+                  <p key={i} className="whitespace-pre-line">
+                    {para}
+                  </p>
+                ))
               ) : (
                 <p className="italic text-charcoal/50">Property details will be updated soon.</p>
               )}
@@ -424,11 +677,34 @@ function PropertyPage() {
             )}
           </section>
 
+          {/* Ideal For Section */}
+          {idealForLines.length > 0 && (
+            <>
+              <Divider />
+              <section className="rounded-2xl bg-card p-5 sm:p-6 shadow-card border border-charcoal/5">
+                <h2 className="text-[19px] sm:text-[20px] font-bold text-charcoal flex items-center gap-2">
+                  <span>👨‍👩‍👧‍👦</span> Ideal For
+                </h2>
+                <ul className="mt-4 grid gap-2.5 sm:grid-cols-2">
+                  {idealForLines.map((item, idx) => (
+                    <li
+                      key={idx}
+                      className="flex items-start gap-2.5 rounded-xl bg-sand/60 px-3.5 py-2.5 text-[14px] text-charcoal/85"
+                    >
+                      <CheckCircle2 size={16} className="mt-0.5 shrink-0 text-sage" />
+                      <span>{item}</span>
+                    </li>
+                  ))}
+                </ul>
+              </section>
+            </>
+          )}
+
           <Divider />
 
           {/* Amenities */}
           <section>
-            <h2 className="text-[20px] font-bold text-charcoal">Amenities & Features</h2>
+            <h2 className="text-[20px] font-bold text-charcoal">Amenities &amp; Features</h2>
             <div className="mt-4 grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-5">
               {amenities.map((a) => (
                 <div
@@ -453,49 +729,135 @@ function PropertyPage() {
 
           <Divider />
 
-          {/* Map */}
+          {/* Location & Location Advantages */}
           <section>
-            <h2 className="text-[20px] font-bold text-charcoal">Property Location</h2>
+            <h2 className="text-[20px] font-bold text-charcoal">
+              📍 Location &amp; Location Advantages
+            </h2>
             {(() => {
               const mapLink = ((initialProperty as any).mapLink || "").trim();
               const directionsLink = ((initialProperty as any).directionsLink || "").trim();
-              const fullAddress = ((initialProperty as any).fullAddress || "").trim();
+              const fullAddress = ((initialProperty as any).fullAddress || p.location || "").trim();
               const zoneLocality = ((initialProperty as any).zoneLocality || "").trim();
-              const advantages = ((initialProperty as any).locationAdvantages || "")
-                .split("\n").map((s: string) => s.trim()).filter(Boolean);
-              if (!mapLink && !directionsLink && !fullAddress && !zoneLocality && advantages.length === 0) return null;
+              const connectivityItems = detailList("connectivity").filter(
+                (it) => !/ideal\s+for/i.test(it.title || ""),
+              );
+              const schoolItems = detailList("nearby_schools");
+              const hospitalItems = detailList("nearby_hospitals");
+
+              if (
+                !mapLink &&
+                !directionsLink &&
+                !fullAddress &&
+                !zoneLocality &&
+                locationAdvantageLines.length === 0 &&
+                connectivityItems.length === 0 &&
+                schoolItems.length === 0 &&
+                hospitalItems.length === 0
+              ) {
+                return null;
+              }
               return (
-                <div className="mt-4 rounded-2xl bg-card p-5 shadow-card">
+                <div className="mt-4 rounded-2xl bg-card p-5 sm:p-6 shadow-card space-y-4">
                   {fullAddress && (
-                    <div className="flex items-start gap-2 text-[14px] text-charcoal">
-                      <MapPin size={16} className="mt-0.5 shrink-0 text-gold" />
-                      <div><span className="font-semibold">Address:</span> {fullAddress}</div>
+                    <div className="flex items-start gap-2 text-[14.5px] text-charcoal">
+                      <MapPin size={17} className="mt-0.5 shrink-0 text-gold" />
+                      <div>
+                        <span className="font-semibold">Address:</span> {fullAddress}
+                      </div>
                     </div>
                   )}
                   {zoneLocality && (
-                    <div className="mt-2 text-[13px] text-charcoal/70">
+                    <div className="text-[13.5px] text-charcoal/70">
                       <span className="font-semibold text-charcoal">Zone / Locality:</span> {zoneLocality}
                     </div>
                   )}
-                  {advantages.length > 0 && (
-                    <div className="mt-3">
-                      <div className="text-[13px] font-semibold text-charcoal">Location Advantages</div>
-                      <ul className="mt-1.5 list-disc space-y-1 pl-5 text-[13px] text-charcoal/75">
-                        {advantages.map((a: string, i: number) => <li key={i}>{a}</li>)}
+                  {locationAdvantageLines.length > 0 && (
+                    <div>
+                      <div className="text-[15px] font-bold text-charcoal mb-2.5">
+                        Location Advantages
+                      </div>
+                      <ul className="grid gap-2 sm:grid-cols-2">
+                        {locationAdvantageLines.map((a: string, i: number) => (
+                          <li
+                            key={i}
+                            className="flex items-start gap-2 rounded-xl bg-sand/60 px-3.5 py-2.5 text-[13.5px] text-charcoal/85"
+                          >
+                            <CheckCircle2 size={15} className="mt-0.5 shrink-0 text-gold" />
+                            <span>{a}</span>
+                          </li>
+                        ))}
                       </ul>
                     </div>
                   )}
+                  {(connectivityItems.length > 0 || schoolItems.length > 0 || hospitalItems.length > 0) && (
+                    <div className="grid gap-3 sm:grid-cols-3 pt-2">
+                      {connectivityItems.length > 0 && (
+                        <div className="rounded-xl bg-sand/50 p-3">
+                          <div className="text-xs font-bold uppercase tracking-wider text-charcoal/70 mb-1.5">
+                            Connectivity
+                          </div>
+                          <ul className="space-y-1 text-xs text-charcoal/80">
+                            {connectivityItems.map((c, idx) => (
+                              <li key={idx}>
+                                • {c.title}
+                                {c.subtitle ? ` (${c.subtitle})` : ""}
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+                      )}
+                      {schoolItems.length > 0 && (
+                        <div className="rounded-xl bg-sand/50 p-3">
+                          <div className="text-xs font-bold uppercase tracking-wider text-charcoal/70 mb-1.5">
+                            Nearby Schools
+                          </div>
+                          <ul className="space-y-1 text-xs text-charcoal/80">
+                            {schoolItems.map((c, idx) => (
+                              <li key={idx}>
+                                • {c.title}
+                                {c.subtitle ? ` (${c.subtitle})` : ""}
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+                      )}
+                      {hospitalItems.length > 0 && (
+                        <div className="rounded-xl bg-sand/50 p-3">
+                          <div className="text-xs font-bold uppercase tracking-wider text-charcoal/70 mb-1.5">
+                            Nearby Hospitals
+                          </div>
+                          <ul className="space-y-1 text-xs text-charcoal/80">
+                            {hospitalItems.map((c, idx) => (
+                              <li key={idx}>
+                                • {c.title}
+                                {c.subtitle ? ` (${c.subtitle})` : ""}
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+                      )}
+                    </div>
+                  )}
                   {(mapLink || directionsLink) && (
-                    <div className="mt-4 flex flex-wrap gap-2">
+                    <div className="pt-2 flex flex-wrap gap-2">
                       {mapLink && (
-                        <a href={mapLink} target="_blank" rel="noopener noreferrer"
-                          className="inline-flex items-center gap-1.5 rounded-full bg-gold px-4 py-2 text-[13px] font-semibold text-white shadow-card transition hover:bg-gold-light">
+                        <a
+                          href={mapLink}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-flex items-center gap-1.5 rounded-full bg-gold px-4 py-2 text-[13px] font-semibold text-white shadow-card transition hover:bg-gold-light"
+                        >
                           <MapPin size={14} /> View on Google Maps
                         </a>
                       )}
                       {directionsLink && (
-                        <a href={directionsLink} target="_blank" rel="noopener noreferrer"
-                          className="inline-flex items-center gap-1.5 rounded-full border border-charcoal/15 bg-white px-4 py-2 text-[13px] font-semibold text-charcoal transition hover:bg-sand">
+                        <a
+                          href={directionsLink}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-flex items-center gap-1.5 rounded-full border border-charcoal/15 bg-white px-4 py-2 text-[13px] font-semibold text-charcoal transition hover:bg-sand"
+                        >
                           <Compass size={14} /> Get Directions
                         </a>
                       )}
@@ -504,25 +866,23 @@ function PropertyPage() {
                 </div>
               );
             })()}
-
-
           </section>
 
           <Divider />
 
-          {/* Builder */}
+          {/* Builder & Owner Info */}
           <section className="flex flex-wrap items-center gap-4 rounded-2xl bg-card p-5 shadow-card">
             <div className="grid h-12 w-12 place-items-center rounded-full bg-gold text-lg font-bold text-white">
-              {p.builder.charAt(0)}
+              {(p.builder || ownerNameText || "T").charAt(0).toUpperCase()}
             </div>
             <div className="flex-1 min-w-[160px]">
               <div className="text-[18px] font-bold text-charcoal">{p.builder}</div>
-              <div className="text-[13px] text-charcoal/60">Verified developer</div>
+              <div className="text-[13px] text-charcoal/60">
+                {ownerNameText ? `Owner / Seller: ${ownerNameText} · Verified Listing` : "Verified developer"}
+              </div>
             </div>
             <BuilderContactIcons contact={(p as any).builderContact} />
           </section>
-
-
         </div>
 
         {/* RIGHT */}

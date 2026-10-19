@@ -200,6 +200,11 @@ function HotPropertyCard({ p, settings }: { p: Property; settings?: HotPropertyS
                 <h3 className="mt-1 font-display text-lg sm:text-xl md:text-2xl font-bold text-slate-900 leading-snug line-clamp-1">
                   {title}
                 </h3>
+                {p.subtitle && (
+                  <p className="mt-0.5 text-xs font-medium text-[#B8962E] line-clamp-1">
+                    {p.subtitle}
+                  </p>
+                )}
 
                 {/* Location */}
                 <div className="mt-0.5 flex items-center gap-1 text-xs text-slate-500">

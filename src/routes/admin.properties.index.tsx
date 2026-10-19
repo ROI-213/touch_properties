@@ -49,6 +49,8 @@ function PropertiesList() {
         const s = search.trim().toLowerCase();
         const searchFields = [
           p.project_name,
+          p.details?.subtitle,
+          p.details?.tagline,
           p.id,
           p.slug,
           p.property_code,
@@ -57,6 +59,10 @@ function PropertiesList() {
           p.location?.locality,
           p.location?.zone,
           p.builder?.name,
+          p.builder?.display_name,
+          p.owner?.name,
+          p.owner?.display_name,
+          p.details?.owner_name,
           p.agent_name,
           p.owner_name,
           p.property_type,
@@ -331,8 +337,18 @@ function PropertiesList() {
                   </td>
                   <td className="p-3.5 min-w-[200px]">
                     <div className="font-semibold text-[#0a1f44]">{p.project_name}</div>
+                    {(p.details?.subtitle || p.details?.tagline) && (
+                      <div className="text-[11px] font-medium text-[#c9a961] truncate max-w-md">
+                        {p.details?.subtitle || p.details?.tagline}
+                      </div>
+                    )}
                     <div className="text-xs text-slate-500">
-                      {p.builder?.name || "—"} · {p.location?.locality || p.address || "No location"}
+                      {p.builder?.display_name || p.builder?.name || "—"}
+                      {(p.owner?.display_name || p.owner?.name || p.details?.owner_name)
+                        ? ` · Owner: ${p.owner?.display_name || p.owner?.name || p.details?.owner_name}`
+                        : ""}
+                      {" · "}
+                      {p.location?.locality || p.address || "No location"}
                     </div>
                   </td>
                   <td className="p-3.5 text-slate-700 text-xs font-medium">{p.property_type}</td>
@@ -435,7 +451,12 @@ function PropertiesList() {
                   <div className="min-w-0 flex-1">
                     <div className="font-bold text-sm text-[#0a1f44] truncate">{p.project_name}</div>
                     <div className="text-xs text-slate-500 truncate">
-                      {p.builder?.name || "—"} · {p.location?.locality || p.address || "No location"}
+                      {p.builder?.display_name || p.builder?.name || "—"}
+                      {(p.owner?.display_name || p.owner?.name || p.details?.owner_name)
+                        ? ` · Owner: ${p.owner?.display_name || p.owner?.name || p.details?.owner_name}`
+                        : ""}
+                      {" · "}
+                      {p.location?.locality || p.address || "No location"}
                     </div>
                   </div>
                 </div>

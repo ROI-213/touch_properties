@@ -351,9 +351,13 @@ export const executeDbQueryFn = createServerFn({ method: "POST" })
         if (table === "properties" && selectStr && selectStr.includes("locations")) {
           sql = `
             SELECT p.*,
-                   (SELECT row_to_json(b) FROM (SELECT name FROM builders WHERE id = p.builder_id) b) as builder,
+                   (SELECT row_to_json(b) FROM (SELECT id, name, display_name, contact_type, logo_url, primary_phone, whatsapp_number, email, website, show_on_website FROM builders WHERE id = p.builder_id) b) as builder,
+                   (SELECT row_to_json(o) FROM (SELECT id, name, display_name, contact_type, logo_url, primary_phone, whatsapp_number, email, website, show_on_website FROM builders WHERE id = p.owner_id) o) as owner,
+                   (SELECT row_to_json(ag) FROM (SELECT id, name, display_name, contact_type, logo_url, primary_phone, whatsapp_number, email, website, show_on_website FROM builders WHERE id = p.agent_id) ag) as agent,
                    (SELECT row_to_json(l) FROM (SELECT zone, locality FROM locations WHERE id = p.location_id) l) as location,
-                   (SELECT coalesce(json_agg(row_to_json(img)), '[]') FROM (SELECT url, image_type FROM property_images WHERE property_id = p.id) img) as property_images
+                   (SELECT coalesce(json_agg(row_to_json(img)), '[]') FROM (SELECT url, image_type, display_order FROM property_images WHERE property_id = p.id ORDER BY display_order ASC) img) as property_images,
+                   (SELECT coalesce(json_agg(row_to_json(pa)), '[]') FROM (SELECT * FROM property_assignments WHERE property_id = p.id ORDER BY display_order ASC) pa) as property_assignments,
+                   (SELECT coalesce(json_agg(json_build_object('amenity', row_to_json(am))), '[]') FROM property_amenities pam JOIN amenities am ON am.id = pam.amenity_id WHERE pam.property_id = p.id) as property_amenities
             FROM properties p
           `;
         } else {

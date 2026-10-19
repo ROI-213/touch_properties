@@ -20,8 +20,16 @@ const safeSlug = (value: unknown, fallback: string) =>
 // Map a DB property row to the legacy Property type used across the public site
 export function dbRowToProperty(p: any): Property {
   const row = p ?? {};
+  const details = (row.details && typeof row.details === "object" ? row.details : {}) as Record<string, any>;
   const images = Array.isArray(row.property_images) ? row.property_images : [];
-  const builder = safeText(row.builder?.name || row.builders?.name, "Touchstone Properties");
+  const builder = safeText(
+    row.builder?.display_name || row.builder?.name || row.builders?.name,
+    "Touchstone Properties",
+  );
+  const ownerName = safeText(
+    row.owner?.display_name || row.owner?.name || details.owner_name,
+  );
+  const subtitle = safeText(details.subtitle || details.tagline);
   const zone = safeText(row.location?.zone || row.locations?.zone);
   const locality = safeText(row.location?.locality || row.locations?.locality);
   const id = safeText(row.id, `property-${safeText(row.slug, "listing")}`);
@@ -39,26 +47,42 @@ export function dbRowToProperty(p: any): Property {
     .map((u: string) => resolveLocalImage(u, FALLBACK_IMAGE));
   const galleryImages = Array.from(new Set([resolvedHero, ...rawGallery]));
 
-  const priceLabel = row.starting_price
-    ? `₹ ${formatINR(safeNumber(row.starting_price))}${row.price_max ? "" : " onwards"}`
+  const priceNum = safeNumber(row.starting_price);
+  const priceLabel = priceNum > 0
+    ? `₹ ${formatINR(priceNum)}${row.price_max ? "" : " onwards"}`
     : "Price on request";
+
+  const rawSqftStr = String(row.carpet_area || details.super_builtup_area || row.unit_sizes || "0")
+    .split("-")[0]
+    .replace(/[^\d]/g, "");
+  const sqft = parseInt(rawSqftStr, 10) || 0;
+
+  const rawBhkStr = (
+    (Array.isArray(row.bhk_options) && row.bhk_options[0]) ||
+    details.bhk_display_label ||
+    "0"
+  ).toString();
+  const bhk = parseInt(rawBhkStr, 10) || 0;
+  const baths = parseInt(String(details.bathrooms ?? "0").replace(/[^\d]/g, ""), 10) || 0;
 
   return {
     id,
     slug: safeSlug(row.slug, id),
     title,
+    subtitle: subtitle || undefined,
     builder,
-    location: safeText(row.address, `${locality}${zone ? `, ${zone} Bangalore` : ""}`) || "Bangalore",
+    ownerName: ownerName || undefined,
+    location: safeText(row.address, `${locality}${zone ? `, ${zone}` : ""}`) || "Bangalore",
     area: locality || zone || "Bangalore",
     city: "Bangalore",
     type: (safeText(row.property_type, "Apartment") as Property["type"]),
     listingType: row.listing_type === "Rent" ? "RENT" : "BUY",
     price: priceLabel,
-    priceValue: safeNumber(row.starting_price),
-    bhk: parseInt((Array.isArray(row.bhk_options) ? row.bhk_options[0] : "0")?.toString() ?? "0", 10) || 0,
-    baths: 0,
-    sqft: parseInt((row.carpet_area ?? "0").toString(), 10) || 0,
-    description: safeText(row.overview || row.highlights, "Verified property in Bangalore."),
+    priceValue: priceNum,
+    bhk,
+    baths,
+    sqft,
+    description: safeText(row.overview || subtitle || row.highlights, "Verified property in Bangalore."),
     image: resolvedHero,
     galleryImages,
     possession: row.is_ready_to_move ? "Ready to Move" : "Under Construction",
@@ -72,7 +96,22 @@ export function dbRowToProperty(p: any): Property {
     isTopFeatured: !!row.is_top_featured,
     topFeaturedRank: typeof row.top_featured_rank === "number" ? row.top_featured_rank : null,
     assignedStaffId: row.assigned_staff_id ?? null,
-  } as Property & { isTopFeatured: boolean; topFeaturedRank: number | null; assignedStaffId: string | null; galleryImages: string[] };
+    aboutProperty: safeText(row.overview),
+    highlightsText: safeText(row.highlights || details.property_details),
+    locationAdvantages: safeText(row.location_advantages || details.location_advantages),
+    idealFor: safeText(details.ideal_for),
+    details,
+  } as Property & {
+    isTopFeatured: boolean;
+    topFeaturedRank: number | null;
+    assignedStaffId: string | null;
+    galleryImages: string[];
+    aboutProperty?: string;
+    highlightsText?: string;
+    locationAdvantages?: string;
+    idealFor?: string;
+    details?: Record<string, any>;
+  };
 }
 
 function formatINR(n: number): string {
