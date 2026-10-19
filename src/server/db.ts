@@ -27,56 +27,121 @@ const isExplicitNoSsl =
   process.env.PGSSL === "false" ||
   connectionString.includes("@touchstoneproperties.in:5432");
 
-const pool = new Pool({
-  connectionString,
-  connectionTimeoutMillis: 10000,
-  idleTimeoutMillis: 30000,
-  max: 20,
-  ssl: isExplicitNoSsl ? false : { rejectUnauthorized: false },
-});
+const globalForPg = globalThis as unknown as {
+  __tsPgPool?: Pool;
+  __tsLastIdleReap?: number;
+};
 
-pool.on("error", (err) => {
-  if (process.env.NODE_ENV !== "production") {
-    console.warn("[pg.Pool background error]:", err.message);
-  }
-});
+const pool =
+  globalForPg.__tsPgPool ??
+  new Pool({
+    connectionString,
+    connectionTimeoutMillis: 8000,
+    idleTimeoutMillis: 4000,
+    max: process.env.VERCEL ? 2 : 4,
+    allowExitOnIdle: true,
+    ssl: isExplicitNoSsl ? false : { rejectUnauthorized: false },
+  });
+
+if (!globalForPg.__tsPgPool) {
+  globalForPg.__tsPgPool = pool;
+
+  pool.on("error", (err) => {
+    if (process.env.NODE_ENV !== "production") {
+      console.warn("[pg.Pool background error]:", err.message);
+    }
+  });
+
+  // Automatically reap abandoned idle connections (>20s idle) from serverless/dev instances
+  // so PostgreSQL max_connections (100) is never exhausted.
+  pool.on("connect", (client) => {
+    const now = Date.now();
+    if (now - (globalForPg.__tsLastIdleReap || 0) < 15000) return;
+    globalForPg.__tsLastIdleReap = now;
+    client
+      .query(
+        `SELECT pg_terminate_backend(pid)
+         FROM pg_stat_activity
+         WHERE datname = current_database()
+           AND usename = current_user
+           AND pid <> pg_backend_pid()
+           AND state = 'idle'
+           AND state_change < NOW() - INTERVAL '20 seconds'`,
+      )
+      .catch(() => {});
+  });
+}
+
+const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
 export const query = async (text: string, params?: unknown[]) => {
   try {
     return await pool.query(text, params as never[]);
   } catch (err) {
-    const e = err as { message?: string };
+    const e = err as { message?: string; code?: string };
     const msg = String(e?.message || "").toLowerCase();
-    const isSslErr = msg.includes("ssl") || msg.includes("tlssocket") || msg.includes("handshake");
+    const isSlotExhausted =
+      e?.code === "53300" ||
+      msg.includes("remaining connection slots") ||
+      msg.includes("too many clients");
+    const isSslErr =
+      msg.includes("ssl") ||
+      msg.includes("tlssocket") ||
+      msg.includes("handshake");
     const isConnErr =
+      isSlotExhausted ||
       msg.includes("terminated") ||
       msg.includes("closed") ||
       msg.includes("econnrefused") ||
       msg.includes("etimedout") ||
-      // pg Pool emits "timeout expired" when acquiring a client exceeds
-      // connectionTimeoutMillis — worth one fresh-connection retry.
       msg.includes("timeout expired");
 
     if (isSslErr || isConnErr) {
       const targetConnStr = msg.includes("econnrefused")
         ? remoteConnectionString
         : connectionString;
-      const fallbackClient = new Client({
-        connectionString: targetConnStr,
-        connectionTimeoutMillis: 8000,
-        ssl:
-          isSslErr || targetConnStr.includes("@touchstoneproperties.in:5432")
-            ? false
-            : isExplicitNoSsl
+
+      let lastErr: unknown = err;
+      const attempts = isSlotExhausted ? 3 : 1;
+      for (let i = 0; i < attempts; i++) {
+        if (i > 0 || isSlotExhausted) {
+          await sleep(400 * (i + 1));
+        }
+        const fallbackClient = new Client({
+          connectionString: targetConnStr,
+          connectionTimeoutMillis: 8000,
+          ssl:
+            isSslErr || targetConnStr.includes("@touchstoneproperties.in:5432")
               ? false
-              : { rejectUnauthorized: false },
-      });
-      await fallbackClient.connect();
-      try {
-        return await fallbackClient.query(text, params as never[]);
-      } finally {
-        await fallbackClient.end().catch(() => {});
+              : isExplicitNoSsl
+                ? false
+                : { rejectUnauthorized: false },
+        });
+        try {
+          await fallbackClient.connect();
+          try {
+            if (isSlotExhausted) {
+              await fallbackClient
+                .query(
+                  `SELECT pg_terminate_backend(pid)
+                   FROM pg_stat_activity
+                   WHERE datname = current_database()
+                     AND usename = current_user
+                     AND pid <> pg_backend_pid()
+                     AND state = 'idle'
+                     AND state_change < NOW() - INTERVAL '5 seconds'`,
+                )
+                .catch(() => {});
+            }
+            return await fallbackClient.query(text, params as never[]);
+          } finally {
+            await fallbackClient.end().catch(() => {});
+          }
+        } catch (retryErr) {
+          lastErr = retryErr;
+        }
       }
+      throw lastErr;
     }
     throw err;
   }
