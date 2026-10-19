@@ -68,6 +68,7 @@ function HotPropertyCard({ p, settings }: { p: Property; settings?: HotPropertyS
     : Array.from(new Set(propGallery.length > 0 ? [defaultImage, ...propGallery] : [defaultImage])).slice(0, 4);
 
   const [activeImg, setActiveImg] = useState(defaultImage);
+  const currentImg = galleryImages.includes(activeImg) ? activeImg : defaultImage;
 
   const title = settings?.override_title || p.title;
   const location = settings?.override_location || p.location;
@@ -85,11 +86,11 @@ function HotPropertyCard({ p, settings }: { p: Property; settings?: HotPropertyS
     )}`;
 
   return (
-    <section className="relative overflow-hidden bg-gradient-to-b from-[#FBF9F5] via-white to-[#FBF9F5] py-5 sm:py-8 px-3 sm:px-4 md:px-6 w-full">
+    <section className="relative overflow-hidden bg-gradient-to-b from-[#FBF9F5] via-white to-[#FBF9F5] py-4 sm:py-6 px-3 sm:px-4 md:px-6 w-full">
       {/* Background Orbs & Accents */}
       <div className="pointer-events-none absolute -top-24 left-1/2 h-72 w-72 -translate-x-1/2 rounded-full bg-gold/10 blur-3xl" />
 
-      <div className="relative mx-auto w-full max-w-[1100px]">
+      <div className="relative mx-auto w-full max-w-[920px]">
         {/* Compact Section Header */}
         <motion.div
           initial={{ y: 0, opacity: 1 }}
@@ -100,7 +101,7 @@ function HotPropertyCard({ p, settings }: { p: Property; settings?: HotPropertyS
           <span className="inline-flex items-center gap-1.5 rounded-full border border-gold/40 bg-gold/10 px-3 py-1 text-[10px] sm:text-[11px] font-bold uppercase tracking-[2px] text-[#B8962E]">
             <Sparkles size={12} className="text-[#B8962E]" /> Exclusive Spotlight
           </span>
-          <h2 className="mt-1.5 sm:mt-2 font-display text-2xl sm:text-3xl md:text-4xl font-bold text-slate-900 leading-tight">
+          <h2 className="mt-1.5 font-display text-2xl sm:text-3xl font-bold text-slate-900 leading-tight">
             Hot Property <span className="italic text-[#B8962E]">of the Week</span>
           </h2>
         </motion.div>
@@ -110,21 +111,21 @@ function HotPropertyCard({ p, settings }: { p: Property; settings?: HotPropertyS
           initial={{ y: 0, opacity: 1 }}
           animate={{ y: 0, opacity: 1 }}
           transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
-          className="group relative mt-4 sm:mt-6 overflow-hidden rounded-2xl sm:rounded-[24px] border border-slate-200/80 bg-white shadow-[0_14px_35px_rgba(15,23,42,0.07)] transition-all duration-500 hover:shadow-[0_20px_50px_rgba(184,150,46,0.14)] hover:border-gold/30"
+          className="group relative mt-3.5 sm:mt-5 overflow-hidden rounded-2xl sm:rounded-[22px] border border-slate-200/80 bg-white shadow-[0_14px_35px_rgba(15,23,42,0.07)] transition-all duration-500 hover:shadow-[0_20px_50px_rgba(184,150,46,0.14)] hover:border-gold/30"
         >
-          <div className="grid grid-cols-1 md:grid-cols-12">
+          <div className="grid grid-cols-1 md:grid-cols-12 md:items-stretch">
             {/* Left Column — Image */}
-            <div className="relative overflow-hidden md:col-span-6 bg-slate-900">
+            <div className="relative h-48 sm:h-56 md:h-[230px] lg:h-[245px] overflow-hidden md:col-span-5 bg-slate-900">
               <AnimatePresence mode="wait">
                 <motion.img
-                  key={activeImg}
-                  src={activeImg}
+                  key={currentImg}
+                  src={currentImg}
                   alt={title}
                   initial={{ scale: 1.03, opacity: 0.85 }}
                   animate={{ scale: 1, opacity: 1 }}
                   exit={{ opacity: 0.7 }}
                   transition={{ duration: 0.4 }}
-                  className="h-48 w-full object-cover sm:h-60 md:h-full md:min-h-[260px] transition-transform duration-700 group-hover:scale-105"
+                  className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-105"
                   loading="lazy"
                 />
               </AnimatePresence>
@@ -164,7 +165,7 @@ function HotPropertyCard({ p, settings }: { p: Property; settings?: HotPropertyS
                         onClick={() => setActiveImg(imgUrl)}
                         aria-label={`View photo ${idx + 1}`}
                         className={`relative h-7 w-9 sm:h-8 sm:w-11 overflow-hidden rounded-md border transition-all ${
-                          activeImg === imgUrl ? "border-gold scale-105" : "border-transparent opacity-70 hover:opacity-100"
+                          currentImg === imgUrl ? "border-gold scale-105" : "border-transparent opacity-70 hover:opacity-100"
                         }`}
                       >
                         <img src={imgUrl} alt="" className="h-full w-full object-cover" />
@@ -182,7 +183,7 @@ function HotPropertyCard({ p, settings }: { p: Property; settings?: HotPropertyS
             </div>
 
             {/* Right Column — Compact Name & Small Details */}
-            <div className="flex flex-col justify-between p-3.5 sm:p-5 md:col-span-6 md:p-6">
+            <div className="flex flex-col justify-center gap-3 p-3.5 sm:p-4 md:col-span-7 md:px-6 md:py-4">
               <div>
                 {/* Builder & Verified Tag */}
                 <div className="flex items-center justify-between gap-2">
@@ -196,23 +197,23 @@ function HotPropertyCard({ p, settings }: { p: Property; settings?: HotPropertyS
                 </div>
 
                 {/* Property Name */}
-                <h3 className="mt-1 font-display text-lg sm:text-2xl font-bold text-slate-900 leading-snug line-clamp-1">
+                <h3 className="mt-1 font-display text-lg sm:text-xl md:text-2xl font-bold text-slate-900 leading-snug line-clamp-1">
                   {title}
                 </h3>
 
                 {/* Location */}
-                <div className="mt-1 flex items-center gap-1 text-xs text-slate-500">
+                <div className="mt-0.5 flex items-center gap-1 text-xs text-slate-500">
                   <MapPin size={13} className="shrink-0 text-[#B8962E]" />
                   <span className="truncate">{location}</span>
                 </div>
 
                 {/* Price + Small Key Details Row */}
-                <div className="mt-3 flex flex-wrap items-center justify-between gap-2 rounded-xl bg-[#FAF6ED] px-3 py-2.5 border border-[#EBE1C7]">
+                <div className="mt-2.5 flex flex-wrap items-center justify-between gap-2 rounded-xl bg-[#FAF6ED] px-3 py-2 border border-[#EBE1C7]">
                   <div>
                     <span className="block text-[9px] font-bold uppercase tracking-wider text-slate-400 leading-none">
                       Starting Price
                     </span>
-                    <span className="font-numeric text-base sm:text-xl font-extrabold text-slate-900">
+                    <span className="font-numeric text-base sm:text-lg md:text-xl font-extrabold text-slate-900">
                       {price}
                     </span>
                   </div>
@@ -237,7 +238,7 @@ function HotPropertyCard({ p, settings }: { p: Property; settings?: HotPropertyS
               </div>
 
               {/* Compact Single-Row Action Bar */}
-              <div className="mt-3.5 sm:mt-4 flex items-center gap-1.5 sm:gap-2 pt-3 border-t border-slate-100">
+              <div className="flex items-center gap-1.5 sm:gap-2 pt-2.5 border-t border-slate-100">
                 <Link
                   to="/property/$slug"
                   params={{ slug: p.slug }}
@@ -273,7 +274,7 @@ function HotPropertyCard({ p, settings }: { p: Property; settings?: HotPropertyS
                 </a>
 
                 <ShareButton
-                  property={{ title, slug: p.slug, location, price, image: activeImg }}
+                  property={{ title, slug: p.slug, location, price, image: currentImg }}
                   className="h-8 w-8 sm:h-9 sm:w-9 shrink-0"
                 />
               </div>
