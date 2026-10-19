@@ -103,6 +103,8 @@ class QueryBuilder {
 
   async then(resolve: any, reject: any) {
     try {
+      const authToken =
+        typeof window !== "undefined" ? localStorage.getItem("ts-auth-token") : null;
       const result = await executeDbQueryFn({
         data: {
           table: this._table,
@@ -115,8 +117,13 @@ class QueryBuilder {
           maybeSingle: this._maybeSingle,
           payload: this._payload,
           onConflict: this._onConflict,
-          returning: this._returning || (this._type === 'insert' || this._type === 'update' || this._type === 'upsert') // often implicitly returns in supabase if select is called
-        }
+          returning:
+            this._returning ||
+            this._type === "insert" ||
+            this._type === "update" ||
+            this._type === "upsert",
+          authToken,
+        },
       });
       resolve(result);
     } catch (err) {

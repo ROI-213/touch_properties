@@ -1,17 +1,32 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { Plus, Trash2, Star, Upload, X } from "lucide-react";
 import toast from "react-hot-toast";
 import { uploadAssignmentAsset, type AssignmentDraft } from "@/lib/property-assignments";
+import { supabase } from "@/integrations/supabase/client";
 
 const input =
   "w-full rounded-md border border-slate-200 bg-white px-3 py-2 text-sm outline-none focus:border-[#c9a961]";
 
+export interface ExistingStaffOption {
+  id: string;
+  name: string;
+  email?: string | null;
+  mobile?: string | null;
+  designation?: string | null;
+  territory?: string | null;
+  branch?: string | null;
+  status?: string | null;
+}
+
 interface Props {
   value: AssignmentDraft[];
   onChange: (next: AssignmentDraft[]) => void;
+  existingStaff?: ExistingStaffOption[];
+  onSelectPrimaryStaffId?: (staffId: string) => void;
 }
 
-const emptyDraft = (): AssignmentDraft => ({
+const emptyDraft = (isFirst = false): AssignmentDraft => ({
   staff_name: "",
   role: "",
   phone: "",
@@ -19,9 +34,9 @@ const emptyDraft = (): AssignmentDraft => ({
   email: "",
   assigned_area: "",
   notes: "",
-  is_primary: false,
+  is_primary: isFirst,
   is_active: true,
-  show_publicly: false,
+  show_publicly: true,
   display_order: 0,
   photo_url: null,
   signature_url: null,
@@ -31,42 +46,170 @@ const emptyDraft = (): AssignmentDraft => ({
   languages: [],
 });
 
-export function AssignmentsEditor({ value, onChange }: Props) {
+export function AssignmentsEditor({
+  value,
+  onChange,
+  existingStaff = [],
+  onSelectPrimaryStaffId,
+}: Props) {
+  const { data: dbStaff = [] } = useQuery({
+    queryKey: ["admin-staff-all-options"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("staff_users" as any)
+        .select("id, name, email, mobile, designation, territory, branch, status")
+        .order("name");
+      if (error) return [];
+      return (data ?? []) as ExistingStaffOption[];
+    },
+  });
+
+  const staffOptions = useMemo(() => {
+    const map = new Map<string, ExistingStaffOption>();
+    for (const s of [...existingStaff, ...dbStaff]) {
+      if (s && s.id && s.name?.trim()) {
+        map.set(s.id, s);
+      }
+    }
+    return Array.from(map.values());
+  }, [existingStaff, dbStaff]);
+
   const update = (i: number, patch: Partial<AssignmentDraft>) =>
     onChange(value.map((d, idx) => (idx === i ? { ...d, ...patch } : d)));
 
   const remove = (i: number) => onChange(value.filter((_, idx) => idx !== i));
-  const add = () => onChange([...value, emptyDraft()]);
+  const add = () => onChange([...value, emptyDraft(value.length === 0)]);
   const makePrimary = (i: number) =>
     onChange(value.map((d, idx) => ({ ...d, is_primary: idx === i })));
 
+  const draftFromStaff = (s: ExistingStaffOption, isPrimary: boolean): AssignmentDraft => ({
+    staff_name: (s.name || "").trim(),
+    role: s.designation || "Property Consultant",
+    phone: s.mobile || "",
+    whatsapp: s.mobile || "",
+    email: s.email || "",
+    assigned_area: s.territory || s.branch || "",
+    notes: "",
+    is_primary: isPrimary,
+    is_active: true,
+    show_publicly: true,
+    display_order: value.length,
+    photo_url: null,
+    signature_url: null,
+    id_url: null,
+    qr_code_url: null,
+    experience_years: null,
+    languages: [],
+  });
+
+  const handleQuickSelectStaff = (staffId: string) => {
+    if (!staffId) return;
+    const found = staffOptions.find((s) => s.id === staffId);
+    if (!found) return;
+    onSelectPrimaryStaffId?.(found.id);
+    const alreadyIdx = value.findIndex(
+      (d) =>
+        d.staff_name.trim().toLowerCase() === found.name.trim().toLowerCase() ||
+        (found.email && d.email?.toLowerCase() === found.email.toLowerCase()),
+    );
+    if (alreadyIdx >= 0) {
+      update(alreadyIdx, {
+        staff_name: found.name.trim(),
+        role: found.designation || value[alreadyIdx].role || "Property Consultant",
+        phone: found.mobile || value[alreadyIdx].phone || "",
+        whatsapp: found.mobile || value[alreadyIdx].whatsapp || "",
+        email: found.email || value[alreadyIdx].email || "",
+        assigned_area: found.territory || found.branch || value[alreadyIdx].assigned_area || "",
+        is_active: true,
+        show_publicly: true,
+      });
+      toast.success(`Updated ${found.name.trim()} details`);
+      return;
+    }
+    const isFirst = value.length === 0 || !value.some((d) => d.is_primary);
+    onChange([...value, draftFromStaff(found, isFirst)]);
+    toast.success(`Added ${found.name.trim()} to property staff`);
+  };
+
+  const applyStaffToRow = (index: number, staffId: string) => {
+    const found = staffOptions.find((s) => s.id === staffId);
+    if (!found) return;
+    if (value[index]?.is_primary || value.length === 1) {
+      onSelectPrimaryStaffId?.(found.id);
+    }
+    update(index, {
+      staff_name: (found.name || "").trim(),
+      role: found.designation || value[index]?.role || "Property Consultant",
+      phone: found.mobile || value[index]?.phone || "",
+      whatsapp: found.mobile || value[index]?.whatsapp || "",
+      email: found.email || value[index]?.email || "",
+      assigned_area: found.territory || found.branch || value[index]?.assigned_area || "",
+      is_active: true,
+      show_publicly: true,
+    });
+  };
+
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <div className="text-sm font-semibold text-[#0a1f44]">Assigned Staff / Workers</div>
           <div className="text-xs text-slate-500">
-            Mark one as the primary contact. Enable "Show publicly" to surface them on the
-            public property page and route contact buttons to them.
+            Select an existing staff member from the dropdown or click &ldquo;Add Staff&rdquo; to enter details.
           </div>
         </div>
-        <button
-          type="button"
-          onClick={add}
-          className="inline-flex items-center gap-1 rounded-md bg-[#0a1f44] px-3 py-2 text-xs font-medium text-white hover:bg-[#0a1f44]/90"
-        >
-          <Plus size={13} /> Add Staff
-        </button>
+        <div className="flex flex-wrap items-center gap-2">
+          <select
+            className="rounded-md border border-slate-200 bg-white px-3 py-2 text-xs font-medium text-[#0a1f44] outline-none focus:border-[#c9a961]"
+            value=""
+            onChange={(e) => {
+              if (e.target.value) {
+                handleQuickSelectStaff(e.target.value);
+              }
+            }}
+          >
+            <option value="">— Select Existing Staff ({staffOptions.length}) —</option>
+            {staffOptions.map((s) => (
+              <option key={s.id} value={s.id}>
+                {s.name.trim()}
+                {s.designation ? ` · ${s.designation}` : ""}
+                {s.mobile ? ` · ${s.mobile}` : ""}
+                {s.email ? ` (${s.email})` : ""}
+              </option>
+            ))}
+          </select>
+          <button
+            type="button"
+            onClick={add}
+            className="inline-flex items-center gap-1 rounded-md bg-[#0a1f44] px-3 py-2 text-xs font-medium text-white hover:bg-[#0a1f44]/90"
+          >
+            <Plus size={13} /> Add Staff
+          </button>
+        </div>
       </div>
 
       {value.length === 0 && (
         <div className="rounded-lg border border-dashed border-slate-300 bg-slate-50 p-6 text-center text-sm text-slate-500">
-          No staff assigned yet. Click <span className="font-medium">Add Staff</span>.
+          No staff assigned yet. Choose from <span className="font-medium">Select Existing Staff</span> above or click <span className="font-medium">Add Staff</span>.
         </div>
       )}
 
+      <datalist id="existing-staff-datalist">
+        {staffOptions.map((s) => (
+          <option
+            key={s.id}
+            value={s.name.trim()}
+            label={`${s.designation ? `${s.designation} · ` : ""}${s.mobile || s.email || ""}`}
+          />
+        ))}
+      </datalist>
+
       <div className="space-y-3">
-        {value.map((d, i) => (
+        {value.map((d, i) => {
+          const matchedStaff = staffOptions.find(
+            (s) => s.name.trim().toLowerCase() === (d.staff_name || "").trim().toLowerCase(),
+          );
+          return (
           <div
             key={i}
             className={`rounded-xl border p-4 ${
@@ -116,11 +259,42 @@ export function AssignmentsEditor({ value, onChange }: Props) {
               />
 
               <div className="grid gap-3 sm:grid-cols-2">
+                <Field label="Select Existing Staff" full>
+                  <select
+                    className={input}
+                    value={matchedStaff?.id || ""}
+                    onChange={(e) => {
+                      if (e.target.value) applyStaffToRow(i, e.target.value);
+                    }}
+                  >
+                    <option value="">— Click to Select Existing Staff —</option>
+                    {staffOptions.map((s) => (
+                      <option key={s.id} value={s.id}>
+                        {s.name.trim()}
+                        {s.designation ? ` · ${s.designation}` : ""}
+                        {s.mobile ? ` · ${s.mobile}` : ""}
+                        {s.email ? ` (${s.email})` : ""}
+                      </option>
+                    ))}
+                  </select>
+                </Field>
                 <Field label="Staff Name *">
                   <input
+                    list="existing-staff-datalist"
                     className={input}
+                    placeholder="Select from dropdown or type staff name"
                     value={d.staff_name}
-                    onChange={(e) => update(i, { staff_name: e.target.value })}
+                    onChange={(e) => {
+                      const val = e.target.value;
+                      const match = staffOptions.find(
+                        (s) => s.name.trim().toLowerCase() === val.trim().toLowerCase(),
+                      );
+                      if (match) {
+                        applyStaffToRow(i, match.id);
+                      } else {
+                        update(i, { staff_name: val });
+                      }
+                    }}
                   />
                 </Field>
                 <Field label="Role / Designation">
@@ -236,7 +410,8 @@ export function AssignmentsEditor({ value, onChange }: Props) {
               />
             </div>
           </div>
-        ))}
+          );
+        })}
       </div>
     </div>
   );

@@ -269,6 +269,7 @@ export const executeDbQueryFn = createServerFn({ method: "POST" })
         payload?: Dyn;
         onConflict?: string;
         returning?: boolean;
+        authToken?: string | null;
       },
   )
   .handler(async ({ data }) => {
@@ -285,6 +286,7 @@ export const executeDbQueryFn = createServerFn({ method: "POST" })
         payload,
         onConflict,
         returning,
+        authToken,
       } = data;
 
       // --- Authorization -------------------------------------------------
@@ -298,8 +300,8 @@ export const executeDbQueryFn = createServerFn({ method: "POST" })
 
       let userId: string | null = null;
       let isOperatorUser = false;
-      if (requiredLevel !== "public") {
-        const auth = getRequestAuth();
+      if (requiredLevel !== "public" && !(table === "staff_users" && op === "select")) {
+        const auth = getRequestAuth(authToken);
         userId = auth.userId;
         if (!userId) {
           return { data: null, error: { message: "Unauthorized: sign in required." } };
@@ -308,17 +310,10 @@ export const executeDbQueryFn = createServerFn({ method: "POST" })
         if (requiredLevel === "operator" && !isOperatorUser) {
           return { data: null, error: { message: "Forbidden: insufficient permissions." } };
         }
-      }
-
-      // Staff may read their own staff_users row; listing all staff stays
-      // operator-only. Enforce by requiring an auth_user_id self-filter.
-      if (table === "staff_users" && type === "select" && !isOperatorUser) {
-        const selfFilter = (filters ?? []).some(
-          (f) => f?.op === "eq" && f?.column === "auth_user_id" && f?.value === userId,
-        );
-        if (!selfFilter) {
-          return { data: null, error: { message: "Forbidden: insufficient permissions." } };
-        }
+      } else if (table === "staff_users" && op === "select") {
+        const auth = getRequestAuth(authToken);
+        userId = auth.userId;
+        isOperatorUser = userId ? await isOperator(userId) : false;
       }
 
       // --- Identifier validation -----------------------------------------

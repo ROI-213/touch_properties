@@ -158,10 +158,12 @@ export function PropertyForm({
     queryFn: async () => {
       const { data, error } = await supabase
         .from("staff_users" as any)
-        .select("id, name, email, mobile, designation, status")
-        .eq("status", "active")
+        .select("id, name, email, mobile, designation, territory, branch, status")
         .order("name");
-      if (error) throw error;
+      if (error) {
+        console.warn("[PropertyForm] staff lookup error:", error.message);
+        return [];
+      }
       return (data ?? []) as any[];
     },
   });
@@ -170,6 +172,62 @@ export function PropertyForm({
   const details = (v.details ?? {}) as Record<string, any>;
   const setD = (k: string, val: any) =>
     setV((s: any) => ({ ...s, details: { ...(s.details ?? {}), [k]: val } }));
+
+  const handleSelectAssignedStaff = (staffId: string | null) => {
+    set("assigned_staff_id", staffId);
+    if (!staffId) return;
+    const found = (staff.data ?? []).find((s: any) => s.id === staffId);
+    if (!found) return;
+    setAssignments((prev) => {
+      const cleanName = (found.name || "").trim();
+      const existingIdx = prev.findIndex(
+        (a) =>
+          a.staff_name?.trim().toLowerCase() === cleanName.toLowerCase() ||
+          (found.email && a.email?.toLowerCase() === found.email.toLowerCase()),
+      );
+      if (existingIdx >= 0) {
+        return prev.map((a, idx) =>
+          idx === existingIdx
+            ? {
+                ...a,
+                staff_name: cleanName,
+                role: found.designation || a.role || "Property Consultant",
+                phone: found.mobile || a.phone || "",
+                whatsapp: found.mobile || a.whatsapp || "",
+                email: found.email || a.email || "",
+                is_primary: true,
+                is_active: true,
+                show_publicly: true,
+              }
+            : { ...a, is_primary: false },
+        );
+      }
+      if (prev.length === 0) {
+        return [
+          {
+            staff_name: cleanName,
+            role: found.designation || "Property Consultant",
+            phone: found.mobile || "",
+            whatsapp: found.mobile || "",
+            email: found.email || "",
+            assigned_area: found.territory || found.branch || "",
+            notes: "",
+            is_primary: true,
+            is_active: true,
+            show_publicly: true,
+            display_order: 0,
+            photo_url: null,
+            signature_url: null,
+            id_url: null,
+            qr_code_url: null,
+            experience_years: null,
+            languages: [],
+          },
+        ];
+      }
+      return prev;
+    });
+  };
 
   const getList = (k: string): ListItem[] => (Array.isArray(details[k]) ? details[k] : []);
   const setList = (k: string, next: ListItem[]) => setD(k, next);
@@ -585,6 +643,26 @@ export function PropertyForm({
                   ))}
               </select>
             )}
+          </div>
+
+          {/* Assigned Staff Dropdown */}
+          <div>
+            <label className={labelCls}>Assigned Staff (Property Consultant)</label>
+            <select
+              className={input}
+              value={v.assigned_staff_id || ""}
+              onChange={(e) => handleSelectAssignedStaff(e.target.value || null)}
+            >
+              <option value="">— Select Existing Staff —</option>
+              {(staff.data ?? []).map((s: any) => (
+                <option key={s.id} value={s.id}>
+                  {(s.name || "").trim()}
+                  {s.designation ? ` · ${s.designation}` : ""}
+                  {s.mobile ? ` · ${s.mobile}` : ""}
+                  {s.email ? ` (${s.email})` : ""}
+                </option>
+              ))}
+            </select>
           </div>
 
           {/* Possession Status & RERA */}
@@ -1262,14 +1340,15 @@ export function PropertyForm({
             <select
               className={input}
               value={v.assigned_staff_id || ""}
-              onChange={(e) => set("assigned_staff_id", e.target.value || null)}
+              onChange={(e) => handleSelectAssignedStaff(e.target.value || null)}
             >
-              <option value="">— Default Company Contact —</option>
+              <option value="">— Select Existing Staff / Default Contact —</option>
               {(staff.data ?? []).map((s: any) => (
                 <option key={s.id} value={s.id}>
-                  {s.name}
+                  {(s.name || "").trim()}
                   {s.designation ? ` · ${s.designation}` : ""}
                   {s.mobile ? ` · ${s.mobile}` : ""}
+                  {s.email ? ` (${s.email})` : ""}
                 </option>
               ))}
             </select>
@@ -1283,6 +1362,16 @@ export function PropertyForm({
               onChange={(e) => set("map_link", e.target.value)}
             />
           </div>
+        </div>
+
+        {/* Property Staff Assignments with Existing Staff Dropdown */}
+        <div className="border-t border-slate-100 pt-4">
+          <AssignmentsEditor
+            value={assignments}
+            onChange={setAssignments}
+            existingStaff={staff.data ?? []}
+            onSelectPrimaryStaffId={(id) => set("assigned_staff_id", id)}
+          />
         </div>
       </div>
 
@@ -1461,7 +1550,12 @@ export function PropertyForm({
               <h3 className="mb-2 text-xs font-bold uppercase tracking-wider text-[#0a1f44]">
                 Additional Contacts Shown on Property Page
               </h3>
-              <AssignmentsEditor value={assignments} onChange={setAssignments} />
+              <AssignmentsEditor
+                value={assignments}
+                onChange={setAssignments}
+                existingStaff={staff.data ?? []}
+                onSelectPrimaryStaffId={(id) => set("assigned_staff_id", id)}
+              />
             </div>
           </div>
         )}

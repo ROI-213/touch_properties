@@ -16,15 +16,33 @@ export interface RequestAuth {
   email: string | null;
 }
 
-/** Verify the Bearer token on the incoming server-function request (if any). */
-export function getRequestAuth(): RequestAuth {
-  try {
-    const request = getRequest();
-    const authHeader = request?.headers?.get("authorization");
-    if (!authHeader || !authHeader.startsWith("Bearer ")) {
-      return { userId: null, email: null };
+function extractCookieToken(cookieHeader: string | null | undefined): string | null {
+  if (!cookieHeader) return null;
+  const parts = cookieHeader.split(";");
+  for (const part of parts) {
+    const [rawName, ...rest] = part.trim().split("=");
+    if (rawName === "ts-auth-token" && rest.length > 0) {
+      const val = rest.join("=").trim();
+      if (val) return decodeURIComponent(val);
     }
-    const token = authHeader.slice("Bearer ".length).trim();
+  }
+  return null;
+}
+
+/** Verify the Bearer token or ts-auth-token cookie on the incoming server-function request. */
+export function getRequestAuth(explicitToken?: string | null): RequestAuth {
+  try {
+    let token = explicitToken?.trim() || null;
+    if (!token) {
+      const request = getRequest();
+      const authHeader = request?.headers?.get("authorization");
+      if (authHeader && authHeader.startsWith("Bearer ")) {
+        token = authHeader.slice("Bearer ".length).trim();
+      }
+      if (!token) {
+        token = extractCookieToken(request?.headers?.get("cookie"));
+      }
+    }
     if (!token) return { userId: null, email: null };
 
     const decoded = jwt.verify(token, getJwtSecret()) as {
