@@ -1,3 +1,4 @@
+import { useCallback } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "@/contexts/AuthContext";
 import { useIsAdmin } from "@/hooks/useIsAdmin";
@@ -38,16 +39,17 @@ export function useStaffPermissions() {
     },
   });
 
-  const can = (moduleKey: string, action: StaffActionKey = "view"): boolean => {
+  const perms = q.data?.perms;
+  const can = useCallback((moduleKey: string, action: StaffActionKey = "view"): boolean => {
     if (isAdmin) return true;
-    const entry = q.data?.perms[moduleKey];
+    const entry = perms?.[moduleKey];
     return !!entry?.[action];
-  };
+  }, [isAdmin, perms]);
 
   return {
     isAdmin,
     staffId: q.data?.staffId ?? null,
-    perms: q.data?.perms ?? {},
+    perms: perms ?? {},
     isLoading: adminLoading || (q.isLoading && !isAdmin),
     can,
     isStaff: !isAdmin && !!q.data?.staffId,

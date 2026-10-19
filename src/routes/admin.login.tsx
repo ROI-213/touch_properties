@@ -7,7 +7,6 @@ import { useIsAdmin } from "@/hooks/useIsAdmin";
 import { useStaffPermissions } from "@/hooks/useStaffPermissions";
 
 export const Route = createFileRoute("/admin/login")({
-  ssr: false,
   head: () => ({ meta: [{ title: "Admin Login — Touchstone Properties" }] }),
   component: AdminLoginPage,
 });
@@ -49,7 +48,7 @@ function AdminLoginPage() {
     openModal("login", { loginOnly: true });
   }, [user, signOut, openModal]);
 
-  if (loading || (user && rolesLoading)) {
+  if (loading || (user && (rolesLoading || hasAccess))) {
     return (
       <div className="grid min-h-screen place-items-center bg-slate-50">
         <div className="text-sm text-slate-500">Loading admin…</div>

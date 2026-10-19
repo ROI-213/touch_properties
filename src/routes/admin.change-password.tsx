@@ -6,7 +6,6 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 
 export const Route = createFileRoute("/admin/change-password")({
-  ssr: false,
   head: () => ({ meta: [{ title: "Change Password — Admin" }] }),
   component: ChangePasswordPage,
 });

@@ -7,7 +7,6 @@ import { loginUserFn } from "@/lib/auth.functions";
 import { supabase } from "@/integrations/supabase/client";
 
 export const Route = createFileRoute("/staff-login")({
-  ssr: false,
   head: () => ({ meta: [{ title: "Staff Login — Touchstone Properties" }] }),
   component: StaffLoginPage,
 });
