@@ -228,21 +228,22 @@ function toPgParam(table: string, column: string, value: Dyn): Dyn {
   return value;
 }
 
-/** Remove sensitive columns from result rows when requester is not an operator. */
+/** Remove sensitive columns and convert Date objects to ISO strings so React never crashes on Date instances. */
 function stripSensitive(rows: Dyn[], isOperatorUser: boolean): Dyn[] {
-  if (isOperatorUser || !Array.isArray(rows)) return rows;
+  if (!Array.isArray(rows)) return rows;
   let stripped = false;
   const out = rows.map((row) => {
     if (!row || typeof row !== "object") return row;
-    let clone: Dyn | null = null;
-    for (const key of Object.keys(row)) {
-      if (SENSITIVE_COLUMNS.has(key)) {
-        if (!clone) clone = { ...row };
+    const clone: Dyn = { ...row };
+    for (const key of Object.keys(clone)) {
+      if (!isOperatorUser && SENSITIVE_COLUMNS.has(key)) {
         delete clone[key];
         stripped = true;
+      } else if (clone[key] instanceof Date) {
+        clone[key] = clone[key].toISOString();
       }
     }
-    return clone ?? row;
+    return clone;
   });
   if (stripped) console.warn("[db] sensitive columns stripped from non-operator response");
   return out;

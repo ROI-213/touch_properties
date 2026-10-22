@@ -1,10 +1,33 @@
 import { QueryClient } from "@tanstack/react-query";
 import { createRouter, Link, useRouter } from "@tanstack/react-router";
+import { useEffect } from "react";
 import { routeTree } from "./routeTree.gen";
+
+function isChunkLoadError(error: unknown): boolean {
+  const msg = (error instanceof Error ? error.message : String(error ?? "")).toLowerCase();
+  return (
+    msg.includes("failed to fetch dynamically imported module") ||
+    msg.includes("importing a module script failed") ||
+    msg.includes("error loading dynamically imported module") ||
+    msg.includes("unable to preload css") ||
+    msg.includes("loading chunk")
+  );
+}
 
 function DefaultErrorComponent({ error, reset }: { error: unknown; reset: () => void }) {
   console.error(error);
   const router = useRouter();
+  const errMsg = error instanceof Error ? error.message : String(error ?? "");
+
+  useEffect(() => {
+    if (typeof window !== "undefined" && isChunkLoadError(error)) {
+      const key = `chunk-reload:${window.location.pathname}`;
+      if (!window.sessionStorage.getItem(key)) {
+        window.sessionStorage.setItem(key, "1");
+        window.location.reload();
+      }
+    }
+  }, [error]);
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-ivory px-4">
@@ -13,6 +36,9 @@ function DefaultErrorComponent({ error, reset }: { error: unknown; reset: () => 
         <p className="mt-2 text-sm text-charcoal/60">
           Something went wrong while loading this page. Please try again or return home.
         </p>
+        {errMsg ? (
+          <p className="mt-2 break-words text-xs text-charcoal/40">{errMsg}</p>
+        ) : null}
         <div className="mt-6 flex flex-wrap justify-center gap-2">
           <button
             onClick={() => void router.invalidate({ sync: true }).finally(reset)}

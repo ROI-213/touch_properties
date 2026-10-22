@@ -9,6 +9,17 @@ type Props = {
 
 type State = { hasError: boolean; message?: string };
 
+function isChunkLoadError(error: unknown): boolean {
+  const msg = (error instanceof Error ? error.message : String(error ?? "")).toLowerCase();
+  return (
+    msg.includes("failed to fetch dynamically imported module") ||
+    msg.includes("importing a module script failed") ||
+    msg.includes("error loading dynamically imported module") ||
+    msg.includes("unable to preload css") ||
+    msg.includes("loading chunk")
+  );
+}
+
 export class AppErrorBoundary extends Component<Props, State> {
   state: State = { hasError: false };
 
@@ -27,6 +38,13 @@ export class AppErrorBoundary extends Component<Props, State> {
 
   componentDidCatch(error: unknown, info: ErrorInfo) {
     console.error("[AppErrorBoundary] render failed", error, info.componentStack);
+    if (typeof window !== "undefined" && isChunkLoadError(error)) {
+      const key = `chunk-reload:${window.location.pathname}`;
+      if (!window.sessionStorage.getItem(key)) {
+        window.sessionStorage.setItem(key, "1");
+        window.location.reload();
+      }
+    }
   }
 
   private retry = () => {

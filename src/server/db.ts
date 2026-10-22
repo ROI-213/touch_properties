@@ -1,4 +1,11 @@
-import { Pool, Client } from "pg";
+import { Pool, Client, types } from "pg";
+
+// Return PostgreSQL DATE (1082) as 'YYYY-MM-DD' strings and TIMESTAMP/TIMESTAMPTZ
+// (1114/1184) as ISO strings so React components never receive raw Date objects
+// over RPC that crash JSX rendering ("Objects are not valid as a React child").
+types.setTypeParser(1082, (val: string) => val);
+types.setTypeParser(1114, (val: string) => val);
+types.setTypeParser(1184, (val: string) => val);
 
 const defaultRemoteUrl = Buffer.from(
   "cG9zdGdyZXNxbDovL3RvdWNoNTkwOmlhMU1WVThXMGtVMVEzNDdORjZhRE5rSHlAdG91Y2hzdG9uZXByb3BlcnRpZXMuaW46NTQzMi90b3VjaDU5MA==",
