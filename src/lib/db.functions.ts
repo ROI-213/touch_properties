@@ -163,11 +163,18 @@ function returningColumns(table: string, selectStr: string | undefined): string 
     ].join(", ");
   }
 
+  if (table === "contact_notes") {
+    return [
+      "*",
+      "(SELECT row_to_json(pr) FROM (SELECT id, project_name, slug FROM properties WHERE id = contact_notes.property_id) pr) as properties",
+    ].join(", ");
+  }
+
   const parts = selectStr
     .split(",")
     .map((s) => s.trim())
     .filter(Boolean);
-  const kept = parts.filter((p) => !p.includes(":"));
+  const kept = parts.filter((p) => !p.includes(":") && !p.includes("("));
   const safe = kept.map((p) => {
     // Allow plain identifiers and bare "*" only.
     if (!/^[a-zA-Z_*][a-zA-Z0-9_*.]*$/.test(p)) {
@@ -354,6 +361,18 @@ export const executeDbQueryFn = createServerFn({ method: "POST" })
                    (SELECT coalesce(json_agg(row_to_json(pa)), '[]') FROM (SELECT * FROM property_assignments WHERE property_id = p.id ORDER BY display_order ASC) pa) as property_assignments,
                    (SELECT coalesce(json_agg(json_build_object('amenity', row_to_json(am))), '[]') FROM property_amenities pam JOIN amenities am ON am.id = pam.amenity_id WHERE pam.property_id = p.id) as property_amenities
             FROM properties p
+          `;
+        } else if (table === "contact_notes") {
+          sql = `
+            SELECT cn.*,
+                   (SELECT row_to_json(pr) FROM (SELECT id, project_name, slug FROM properties WHERE id = cn.property_id) pr) as properties
+            FROM contact_notes cn
+          `;
+        } else if (table === "wishlists" && selectStr && selectStr.includes("properties")) {
+          sql = `
+            SELECT w.*,
+                   (SELECT row_to_json(pr) FROM (SELECT id, project_name, slug FROM properties WHERE id = w.property_id) pr) as property
+            FROM wishlists w
           `;
         } else {
           sql = "SELECT " + sanitizeSelectList(selectStr || "*") + " FROM " + table;
